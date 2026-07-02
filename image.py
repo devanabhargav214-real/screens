@@ -10,17 +10,26 @@ import io
 st.set_page_config(page_title="Telugu AI Studio Pro", page_icon="🎬", layout="wide")
 
 # ==========================================
-# SIMPLE HIGH-CONTRAST WHITE & BLUE STYLING
+# FIX: TOTAL WHITE BACKGROUND & BLACK TEXT FONT
 # ==========================================
 st.markdown("""
     <style>
-    .stApp { background-color: #ffffff !important; }
+    /* యాప్ బ్యాక్‌గ్రౌండ్ ఎల్లప్పుడూ తెల్లగా ఉండాలి */
+    .stApp {
+        background-color: #ffffff !important;
+    }
+    
+    /* మెయిన్ బ్లూ హెడింగ్ */
     .main-heading {
         font-size: 26px; color: #ffffff !important; font-weight: bold; text-align: center;
         background-color: #1e3a8a; padding: 12px; border-radius: 8px; margin-bottom: 25px;
     }
+    
+    /* ట్యాబ్స్ స్టైలింగ్ */
     button[data-baseweb="tab"] { font-size: 15px !important; font-weight: bold !important; color: #1e3a8a !important; }
     button[aria-selected="true"] { border-bottom-color: #1e3a8a !important; color: #1e3a8a !important; background-color: #eff6ff !important; }
+    
+    /* బటన్స్ */
     div.stButton > button {
         background-color: #1e3a8a !important; color: #ffffff !important; font-size: 15px !important;
         font-weight: bold !important; border-radius: 6px !important; border: none !important;
@@ -28,9 +37,23 @@ st.markdown("""
     }
     div.stButton > button:hover { background-color: #2563eb !important; }
     div.stDownloadButton > button { background-color: #10b981 !important; color: #ffffff !important; font-size: 15px !important; font-weight: bold !important; border-radius: 6px !important; border: none !important; width: 100%; }
-    div.stDownloadButton > button:hover { background-color: #059669 !important; }
-    p, label, span, div, p li, .stSelectbox label, .stRadio label { color: #000000 !important; font-weight: bold !important; font-size: 15px !important; }
-    textarea { color: #000000 !important; font-weight: normal !important; }
+    
+    /* టెక్స్ట్ ఇన్‌పుట్ మరియు టెక్స్ట్ ఏరియా బాక్స్‌లను తెల్లగా మార్చడం */
+    div[data-testid="stTextInput"] input, div[data-testid="stTextArea"] textarea {
+        background-color: #ffffff !important;
+        color: #000000 !important;
+        border: 2px solid #1e3a8a !important;
+        border-radius: 6px !important;
+        font-size: 16px !important;
+        font-weight: normal !important;
+    }
+    
+    /* యాప్ లోని అన్ని లేబుల్స్, పేరాలు నలుపు రంగులోకి ఫోర్స్ చేయడం */
+    p, label, span, div, p li, .stSelectbox label, .stRadio label { 
+        color: #000000 !important; 
+        font-weight: bold !important; 
+        font-size: 15px !important; 
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -50,9 +73,14 @@ def trigger_vibration():
     vibrate_html = """<script>if (window.navigator && window.navigator.vibrate) { window.navigator.vibrate(25); }</script>"""
     st.components.v1.html(vibrate_html, height=0, width=0)
 
-st.markdown('<div class="main-heading">🎬 Gemini తెలుగు AI కంప్లీట్ వీడియో స్టూడియో</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-heading">🎬 Gemini తెలుగు AI కంప్లీట్ வீடியோ స్టూడియో</div>', unsafe_allow_html=True)
 
-# 4 పూర్తిగా విడివిడి ట్యాబ్స్ క్రియేషన్
+# ట్యాబ్ ల మధ్య డేటా లాస్ అవ్వకుండా సెషన్ స్టేట్ లో టెక్స్ట్ ని దాచుకుంటున్నాం
+if "generated_story_holder" not in st.session_state:
+    st.session_state.generated_story_holder = ""
+if "generated_scenes_holder" not in st.session_state:
+    st.session_state.generated_scenes_holder = ""
+
 tab1, tab2, tab3, tab4 = st.tabs([
     "📖 1. Story Generator", 
     "🎙️ 2. Voice Over", 
@@ -65,24 +93,24 @@ tab1, tab2, tab3, tab4 = st.tabs([
 # ==========================================
 with tab1:
     st.write("### 📝 1. కథను జనరేట్ చేయండి")
-    user_topic = st.text_input("మీ కథ టాపిక్ ఇవ్వండి:", placeholder="ఉదాహరణకు: తెలివైన కాకి కథ...", key="t1_topic")
+    user_topic = st.text_input("మీ కథ టాపిక్ ఇవ్వండి:", placeholder="ఉదాహరణకు: తెనాలి రామకృష్ణ కథలు...", key="t1_topic")
     
-    story_out = ""
     if st.button("కథ జనరేట్ చేయి ✨", key="t1_btn"):
         if user_topic.strip() == "":
             st.warning("దయచేసి టాపిక్ ఇవ్వండి!")
         elif model is None:
             st.error("Gemini API Key సెట్ చేయబడలేదు!")
         else:
-            with st.spinner("కథ సిద్ధమవుతోంది..."):
+            with st.spinner("Gemini కథను రాస్తోంది..."):
                 try:
-                    response = model.generate_content(f"Write a beautiful short story in pure Telugu language about: '{user_topic}'.")
-                    story_out = response.text.strip() if response.text else ""
-                    st.success("కథ రెడీ అయింది! దీన్ని కాపీ చేసుకోండి.")
-                    play_success_sound()
+                    response = model.generate_content(f"Write a beautiful detailed short story in pure Telugu language about: '{user_topic}'. Ensure it has rich language and proper structure.")
+                    if response.text:
+                        st.session_state.generated_story_holder = response.text.strip()
+                        st.success("కథ రెడీ అయింది! కింద ఉన్న బాక్స్ నుండి కాపీ చేసుకోండి.")
+                        play_success_sound()
                 except Exception as e: st.error(f"లోపం: {e}")
                 
-    st.text_area("📋 ఇక్కడ వచ్చిన కథను కాపీ చేసుకోండి:", value=story_out, height=250, key="t1_area")
+    st.text_area("📋 ఇక్కడ వచ్చిన కథను కాపీ చేసుకోండి:", value=st.session_state.generated_story_holder, height=280, key="t1_area")
 
 # ==========================================
 # TAB 2: VOICE OVER
@@ -150,7 +178,6 @@ with tab3:
     st.write("### 🎬 3. కథను పేస్ట్ చేసి సీన్లుగా విడగొట్టండి")
     input_story_to_split = st.text_area("📋 విజువల్ సీన్లుగా మార్చాల్సిన కథను ఇక్కడ పేస్ట్ (Paste) చేయండి:", height=200, key="t3_area")
     
-    scenes_out = ""
     if st.button("సీన్లుగా విడగొట్టు 🎬", key="t3_btn"):
         if input_story_to_split.strip() == "":
             st.warning("దయచేసి కథను పేస్ట్ చేయండి!")
@@ -162,12 +189,13 @@ with tab3:
                     response = model.generate_content(
                         f"Read this Telugu story: '{input_story_to_split}'. Break it down into exactly 4 to 5 separate visual action lines/scenes in Telugu. Write each scene on a strict new line. Do not use numbers, headers, or bullet symbols."
                     )
-                    scenes_out = response.text.strip() if response.text else ""
-                    st.success("సీన్లు సిద్ధమయ్యాయి! వీటిని కాపీ చేసి ట్యాబ్ 4 లో వాడుకోండి.")
-                    play_success_sound()
+                    if response.text:
+                        st.session_state.generated_scenes_holder = response.text.strip()
+                        st.success("సీన్లు సిద్ధమయ్యాయి! కింద ఉన్న బాక్స్ నుండి కాపీ చేసుకోండి.")
+                        play_success_sound()
                 except Exception as e: st.error(f"లోపం: {e}")
                 
-    st.text_area("🎬 ఇక్కడ వచ్చిన సీన్లను కాపీ చేసుకోండి (లైన్ బై లైన్):", value=scenes_out, height=220, key="t3_out_area")
+    st.text_area("🎬 ఇక్కడ వచ్చిన సీన్లను కాపీ చేసుకోండి (లైన్ బై లైన్):", value=st.session_state.generated_scenes_holder, height=220, key="t3_out_area")
 
 # ==========================================
 # TAB 4: IMAGE GENERATOR
@@ -180,7 +208,7 @@ with tab4:
     ratio_option = st.radio("వీడియో సైజ్:", ("16:9 (యూట్యూబ్)", "9:16 (షార్ట్స్)"), key="t4_ratio")
     img_width, img_height = (1024, 576) if "16:9" in ratio_option else (576, 1024)
 
-    framing_rules = ", wide-angle established master shot framing, full body details from head to toe, vivid colorful background, sharp clear facial features, 8k resolution"
+    framing_rules = ", wide-angle established master shot framing, full body details from head to toe, vivid colorful beautiful background, sharp clear facial features, 8k resolution"
 
     if "2D" in selected_style: style_prompt_addition = f"in traditional beautiful Indian 2D children's storybook cartoon illustration style, bright flat vector colors, clean black outlines{framing_rules}"
     elif "Real" in selected_style: style_prompt_addition = f"photorealistic real-life cinematic film style, highly authentic human lighting, real world environments{framing_rules}"
@@ -209,8 +237,8 @@ with tab4:
                         img_response = requests.get(image_url, timeout=40)
                         if img_response.status_code == 200:
                             st.image(img_response.content, caption=f"Scene {i+1} - {selected_style}", use_container_width=True)
-                            st.download_button(label=f"📥 ఫోటో {i+1} డౌน์โหลด", data=io.BytesIO(img_response.content), file_name=f"scene_{i+1}.jpg", mime="image/jpeg", key=f"dl_{i}")
+                            st.download_button(label="📥 ఫోటో డౌน์โหลด", data=io.BytesIO(img_response.content), file_name=f"scene_{i+1}.jpg", mime="image/jpeg", key=f"dl_{i}")
                             st.markdown("---")
-                        else: st.error(f"సీన్ {i+1} లోడ్ అవ్వలేదు.")
+                        else: st.error(f"సీన్ {i+1} ఇమేజ్ లోడ్ అవ్వలేదు.")
                     except Exception as e: st.error(f"లోపం: {e}")
             play_success_sound()
