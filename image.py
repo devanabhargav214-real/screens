@@ -27,7 +27,6 @@ st.markdown("""
         margin-bottom: 25px;
     }
     
-    /* Tabs custom styling for Blue theme */
     button[data-baseweb="tab"] {
         font-size: 16px !important;
         font-weight: bold !important;
@@ -87,11 +86,10 @@ def trigger_vibration():
 
 st.markdown('<div class="main-heading">🎬 తెలుగు AI ఆటోమేటిక్ వీడియో స్టూడియో</div>', unsafe_allow_html=True)
 
-# Session States initialization
 if "story_text" not in st.session_state:
     st.session_state.story_text = ""
 if "scenes_manual_text" not in st.session_state:
-    st.session_state.scenes_manual_text = "ఆడవిలో ఒక కాకి ఉంది.\nకాకికి చాలా దాహం వేసింది.\nఅక్కడ ఒక కుండ కనిపించింది.\nకుండలో నీళ్లు చాలా కిందకి ఉన్నాయి."
+    st.session_state.scenes_manual_text = "అడవిలో ఒక కాకి ఉంది.\nకాకికి చాలా దాహం వేసింది.\nఅక్కడ ఒక कुండ కనిపించింది.\nకుండలో నీళ్లు చాలా కిందకి ఉన్నాయి."
 
 # CREATE INDIVIDUAL TABS
 tab1, tab2, tab3 = st.tabs(["📖 1. Story Generator", "🎙️ 2. Voice Over", "🎨 3. Image Generator"])
@@ -116,7 +114,7 @@ with tab1:
                     
                     if response.status_code == 200 and response.text.strip() != "":
                         st.session_state.story_text = response.text.strip()
-                        st.success("కథ సిద్ధమైంది! ఈ కథను వాయిస్ ఓవర్ లేదా ఇమేజ్ ట్యాబ్స్ లో వాడుకోవచ్చు.")
+                        st.success("కథ సిద్ధమైంది!")
                         play_success_sound()
                     else:
                         st.error("సర్వర్ బిజీగా ఉంది. దయచేసి మరోసారి ట్రై చేయండి.")
@@ -174,27 +172,26 @@ with tab2:
 
     if st.button("కథను ఆడియోగా మార్చు 🚀", key="audio_gen_trigger"):
         if st.session_state.story_text.strip() == "":
-            st.warning("ట్యాబ్ 1 లో కథ లేదు! దయచేసి ఇక్కడ డైరెక్ట్ గా కథను టైప్ చేయండి లేదా ట్యాబ్ 1 లో జనరేట్ చేయండి.")
-        
-        with st.spinner("ఆడియో రికార్డ్ అవుతోంది..."):
-            try:
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-                final_audio_bytes = loop.run_until_complete(
-                    generate_audio(st.session_state.story_text, voice, voice_speed, voice_volume, voice_pitch)
-                )
-                st.audio(final_audio_bytes, format="audio/mp3")
-                st.download_button(label="📥 కథ ఆడియో ఫైల్ డౌน์โหลด చేయండి", data=final_audio_bytes, file_name="story_voice.mp3", mime="audio/mp3")
-                play_success_sound()
-            except Exception as e: 
-                st.error(f"లోపం: {e}")
+            st.warning("ట్యాబ్ 1 లో కథ లేదు! దయచేసి ఇక్కడ డైరెక్ట్ గా కథను టైప్ చేయండి.")
+        else:
+            with st.spinner("ఆడియో రికార్డ్ అవుతోంది..."):
+                try:
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    final_audio_bytes = loop.run_until_complete(
+                        generate_audio(st.session_state.story_text, voice, voice_speed, voice_volume, voice_pitch)
+                    )
+                    st.audio(final_audio_bytes, format="audio/mp3")
+                    st.download_button(label="📥 కథ ఆడియో ఫైల్ డౌน์โหลด చేయండి", data=final_audio_bytes, file_name="story_voice.mp3", mime="audio/mp3")
+                    play_success_sound()
+                except Exception as e: 
+                    st.error(f"లోపం: {e}")
 
 # ==========================================
-# TAB 3: IMAGE GENERATOR (SCENE REMOVED - DIRECT)
+# TAB 3: IMAGE GENERATOR (WITH FIXED AUTO-FALLBACK)
 # ==========================================
 with tab3:
     st.subheader("🎨 ఇమేజెస్ జనరేట్ చేయండి")
-    st.info("గమనిక: సీన్స్ జనరేషన్ తీసివేయబడింది. కింద ఉన్న బాక్సులో ఒక్కో లైన్ లో ఒక్కో సీన్ టైప్ చేయండి. ప్రతి లైన్ కి ఒక ఫోటో వస్తుంది.")
     
     edited_manual_scenes = st.text_area("🎬 ఇమేజ్ సీన్లు (లైన్ బై లైన్ టైప్ చేయండి):", value=st.session_state.scenes_manual_text, height=180, key="manual_scenes_area")
     st.session_state.scenes_manual_text = edited_manual_scenes
@@ -230,6 +227,7 @@ with tab3:
                 st.write(f"**సీన్ {i+1}:** {t_scene}")
                 with st.spinner(f"సీన్ {i+1} ఫోటో తయారవుతోంది..."):
                     try:
+                        # 1. ట్రాన్స్‌లేషన్ సర్వర్‌ని హై-స్పీడ్ మోడల్ తో పిలుస్తున్నాం
                         translate_prompt = (
                             f"Convert this Telugu story action into a highly descriptive English image prompt. "
                             f"The output visual asset must strictly look like {style_prompt_addition}. "
@@ -237,25 +235,32 @@ with tab3:
                             f"Telugu text: '{t_scene}'"
                         )
                         encoded_t_prompt = requests.utils.quote(translate_prompt)
-                        translate_response = requests.get(f"https://text.pollinations.ai/{encoded_t_prompt}?json=false")
+                        url = f"https://text.pollinations.ai/{encoded_t_prompt}?model=searchgpt&json=false"
+                        translate_response = requests.get(url)
                         
-                        if translate_response.status_code == 200:
-                            english_prompt = translate_response.text.strip()
-                            encoded_scene = requests.utils.quote(english_prompt)
-                            image_url = f"https://image.pollinations.ai/p/{encoded_scene}?width={img_width}&height={img_height}&nologo=true&model=flux"
-                            
-                            img_response = requests.get(image_url)
-                            if img_response.status_code == 200:
-                                st.image(img_response.content, caption=f"Scene {i+1} Output", use_container_width=True)
-                                st.download_button(
-                                    label=f"📥 సీన్ {i+1} ఇమేజ్ డౌน์โหลด చేయండి", data=io.BytesIO(img_response.content),
-                                    file_name=f"scene_{i+1}.jpg", mime="image/jpeg", key=f"dl_manual_img_{i}"
-                                )
-                                st.markdown("---")
-                            else:
-                                st.error(f"సీన్ {i+1} ఇమేజ్ లోడ్ అవ్వలేదు.")
+                        # డిఫాల్ట్ ప్రాంప్ట్ కింద మొదట తెలుగు లైన్ + స్టైల్ సెట్ చేస్తున్నాం (సర్వర్ బిజీ అయితే వాడటానికి)
+                        final_prompt = f"{t_scene}, {style_prompt_addition}"
+                        
+                        # ఒకవేళ ట్రాన్స్‌లేషన్ సక్సెస్ అయితే ఇంగ్లీష్ ప్రాంప్ట్ వాడుతుంది
+                        if translate_response.status_code == 200 and "సర్వర్ బిజీ" not in translate_response.text:
+                            text_out = translate_response.text.strip()
+                            if text_out:
+                                final_prompt = text_out
+                        
+                        # 2. ఇమేజ్ జనరేషన్ ప్రక్రియ
+                        encoded_scene = requests.utils.quote(final_prompt)
+                        image_url = f"https://image.pollinations.ai/p/{encoded_scene}?width={img_width}&height={img_height}&nologo=true&model=flux"
+                        
+                        img_response = requests.get(image_url)
+                        if img_response.status_code == 200:
+                            st.image(img_response.content, caption=f"Scene {i+1} Output", use_container_width=True)
+                            st.download_button(
+                                label=f"📥 సీన్ {i+1} ఇమేజ్ డౌน์โหลด చేయండి", data=io.BytesIO(img_response.content),
+                                file_name=f"scene_{i+1}.jpg", mime="image/jpeg", key=f"dl_manual_img_{i}"
+                            )
+                            st.markdown("---")
                         else:
-                            st.error("ట్రాన్స్‌లేషన్ సర్వర్ బిజీగా ఉంది.")
+                            st.error(f"సీన్ {i+1} ఇమేజ్ లోడ్ అవ్వలేదు.")
                     except Exception as e:
                         st.error(f"తప్పు జరిగింది: {e}")
             play_success_sound()
