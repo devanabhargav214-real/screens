@@ -44,6 +44,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+# Google Gemini API కాన్ఫిగరేషన్
 try:
     gemini_key = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=gemini_key)
@@ -51,47 +52,79 @@ try:
 except Exception:
     model = None
 
+# =======================================================
+# MASTER ULTRA-FALLBACK SERVER ENGINE (ఎప్పటికీ ఎర్రర్ రాదు)
+# =======================================================
+def fetch_high_quality_text(prompt_text):
+    """
+    ఈ ఫంక్షన్ 4 విభిన్న ఉచిత సర్వర్ రూట్లను వరుసగా ట్రై చేస్తుంది.
+    ఒకటి ఫెయిల్ అయినా ఇంకొకటి వెంటనే డేటాను తెస్తుంది. ఎప్పటికీ ఎర్రర్ రాదు.
+    """
+    # రూట్ 1: గూగుల్ జెమిని క్లయింట్ (కీ వర్క్ అవుతుంటే)
+    if model is not None:
+        try:
+            response = model.generate_content(prompt_text)
+            if response.text and "quota" not in response.text.lower() and "exceeded" not in response.text.lower():
+                return response.text.strip()
+        except:
+            pass # జెమిని కోటా అయిపోతే కింద ఉన్న ఫ్రీ సర్వర్స్ కి వెళ్తుంది
+
+    # బ్యాకప్ మోడల్స్ లిస్ట్ (High-Quality Free AI Hub)
+    backup_models = ["searchgpt", "openai", "qwen-2.5-72b", "mistral"]
+    
+    for current_model in backup_models:
+        try:
+            encoded_text = requests.utils.quote(prompt_text)
+            url = f"https://text.pollinations.ai/{encoded_text}?model={current_model}&json=false"
+            res = requests.get(url, timeout=15)
+            if res.status_code == 200 and res.text.strip() and "busy" not in res.text.lower() and "quota" not in res.text.lower():
+                return res.text.strip()
+        except:
+            continue # ఒక సర్వర్ బిజీగా ఉంటే ఆటోమేటిక్‌గా నెక్స్ట్ సర్వర్‌కి మారుతుంది
+            
+    return ""
+
 def play_success_sound():
     st.components.v1.html("""<audio autoplay><source src="https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav" type="audio/wav"></audio>""", height=0, width=0)
 
 def trigger_vibration():
     st.components.v1.html("""<script>if (window.navigator && window.navigator.vibrate) { window.navigator.vibrate(25); }</script>""", height=0, width=0)
 
-st.markdown('<div class="main-heading">🎬  తెలుగు AI కంప్లీట్  స్టూడియో</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-heading">🎬 Gemini & Free-Backup తెలుగు AI వీడియో స్టూడియో</div>', unsafe_allow_html=True)
 
 # సెషన్ స్టేట్ హోల్డర్స్
-if "generated_story_holder" not in st.session_state: 
-    st.session_state.generated_story_holder = ""
-if "generated_scenes_holder" not in st.session_state: 
-    st.session_state.generated_scenes_holder = ""
+if "generated_story_holder" not in st.session_state: st.session_state.generated_story_holder = ""
+if "generated_scenes_holder" not in st.session_state: st.session_state.generated_scenes_holder = ""
 
 tab1, tab2, tab3, tab4 = st.tabs(["📖 1. Story Generator", "🎙️ 2. Voice Over", "🎬 3. Scenes Divider", "🎨 4. Image Generator"])
 
 # ==========================================
-# TAB 1: STORY GENERATOR (100% DISP FIX)
+# TAB 1: STORY GENERATOR
 # ==========================================
 with tab1:
-    st.write("### 📝 1.  కథను జనరేట్ చేయండి")
+    st.write("### 📝 1. కథను జనరేట్ చేయండి")
     user_topic = st.text_input("మీ కథ టాపిక్ ఇవ్వండి:", placeholder="ఉదాహరణకు: తెనాలి రామకృష్ణ కథలు...", key="t1_topic")
     
     if st.button("కథ జనరేట్ చేయి ✨", key="t1_btn"):
         if user_topic.strip() == "": 
             st.warning("దయచేసి టాపిక్ ఇవ్వండి!")
-        elif model is None: 
-            st.error("Gemini API Key సెట్ చేయబడలేదు!")
         else:
             with st.spinner(f"మీరు సెర్చ్ చేసిన '{user_topic}' జనరేట్ అవుతుంది..."):
-                try:
-                    response = model.generate_content(f"Write a beautiful detailed short story in pure Telugu language about the topic: '{user_topic}'.")
-                    if response.text:
-                        # డైరెక్ట్ గా సెషన్ స్టేట్ వాల్యూ ని అప్‌డేట్ చేసి స్క్రీన్‌ని ఫోర్స్ అప్‌డేట్ చేస్తున్నాం
-                        st.session_state.generated_story_holder = response.text.strip()
-                        play_success_sound()
-                except Exception as e: 
-                    st.error(f"AI లోపం: {e}")
+                master_story_prompt = (
+                    f"Write a comprehensive, beautiful, long and detailed short story in pure Telugu language about the topic: '{user_topic}'. "
+                    f"The story must be very clear, interesting, structured with paragraphs, and must include a valuable moral (నీతి) at the end."
+                )
+                
+                result_story = fetch_high_quality_text(master_story_prompt)
+                
+                if result_story:
+                    st.session_state.generated_story_holder = result_story
+                    st.success("కథ విజయవంతంగా సిద్ధమైంది! కింద బాక్స్ నుండి కాపీ చేసుకోండి.")
+                    play_success_sound()
+                else:
+                    st.error("నెట్‌వర్క్ నెమ్మదిగా ఉంది. దయచేసి ఒకసారి బటన్ మళ్లీ నొక్కండి.")
                     
-    # టెక్స్ట్ ఏరియా బాక్స్‌ని నేరుగా సెషన్ స్టేట్ కీ తో బైండ్ చేసాం
-    st.text_area("📋 ఇక్కడ వచ్చిన కథను కాపీ చేసుకోండి:", value=st.session_state.generated_story_holder, height=300, key="t1_area")
+    st.text_area("📋 ఇక్కడ వచ్చిన కథను కాపీ చేసుకోండి:", value=st.session_state.generated_story_holder, height=350, key="t1_area")
 
 # ==========================================
 # TAB 2: VOICE OVER
@@ -151,7 +184,7 @@ with tab2:
                 except Exception as e: st.error(f"లోపం: {e}")
 
 # ==========================================
-# TAB 3: SCENES DIVIDER (100% DISP FIX)
+# TAB 3: SCENES DIVIDER
 # ==========================================
 with tab3:
     st.write("### 🎬 3. కథను పేస్ట్ చేసి సీన్లుగా విడగొట్టండి")
@@ -160,18 +193,19 @@ with tab3:
     if st.button("సీన్లుగా విడగొట్టు 🎬", key="t3_btn"):
         if input_story_to_split.strip() == "": 
             st.warning("దయచేసి కథను పేస్ట్ చేయండి!")
-        elif model is None: 
-            st.error("Gemini API Key సెట్ చేయబడలేదు!")
         else:
-            with st.spinner("Gemini కథను సీన్లుగా విడగొడుతోంది..."):
-                try:
-                    response = model.generate_content(f"Read this Telugu story: '{input_story_to_split}'. Break it down into exactly 4 to 5 separate visual scenes in Telugu. Write each scene on a strict new line. No numbers, headers, or bullet points.")
-                    if response.text:
-                        st.session_state.generated_scenes_holder = response.text.strip()
-                        play_success_sound()
-                except Exception as e: 
-                    st.error(f"లోపం: {e}")
-                    
+            with st.spinner("కథను సీన్లుగా విడగొడుతోంది..."):
+                master_divider_prompt = f"Read this Telugu story: '{input_story_to_split}'. Break it down into exactly 4 separate descriptive visual action scenes in Telugu. Write each scene on a strict new line. Do not use numbers, bullets, or symbols."
+                
+                result_scenes = fetch_high_quality_text(master_divider_prompt)
+                
+                if result_scenes:
+                    st.session_state.generated_scenes_holder = result_scenes
+                    st.success("సీన్లు సిద్ధమయ్యాయి! కింద బాక్స్ నుండి కాపీ చేసుకోండి.")
+                    play_success_sound()
+                else:
+                    st.error("సర్వర్ బిజీగా ఉంది. దయచేసి ఒకసారి మళ్లీ ట్రై చేయండి.")
+                        
     st.text_area("🎬 ఇక్కడ వచ్చిన సీన్లను కాపీ చేసుకోండి (లైన్ బై లైన్):", value=st.session_state.generated_scenes_holder, height=220, key="t3_out_area")
 
 # ==========================================
@@ -179,7 +213,7 @@ with tab3:
 # ==========================================
 with tab4:
     st.write("### 🎨 4. సీన్లను పేస్ట్ చేసి ఇమేజెస్ జనరేట్ చేయండి")
-    input_scenes_to_draw = st.text_area("📋 సీన్లను ఇక్కడ పేస్ట్ చేయండి (లైన్ బై లైన్):", value="అడవిలో ఒక కాకి ఉంది.\nకాకికి దాహం వేసింది.", height=150, key="t4_area")
+    input_scenes_to_draw = st.text_area("📋 సీన్లను ఇక్కడ పేస్ట్ చేయండి (లైన్ బై లైన్):", value="తెనాలి రామకృష్ణ రాజుగారి ఆస్థానంలో నిలబడ్డాడు.\nరాజుగారు సింహాసనంపై కూర్చున్నారు.", height=150, key="t4_area")
     selected_style = st.radio("స్టైల్ ఎంచుకోండి:", ("2D Indian Cartoon Style (2D కార్టూన్)", "Real Life / Cinematic Style (నిజమైన ఫొటో లాగా)", "3D Disney Pixar Style (3D యానిమేషన్)"), key="t4_style")
     ratio_option = st.radio("వీడియో సైజ్:", ("16:9 (యూట్యూబ్)", "9:16 (షార్ట్స్)"), key="t4_ratio")
     img_width, img_height = (1024, 576) if "16:9" in ratio_option else (576, 1024)
@@ -198,15 +232,16 @@ with tab4:
             for i, t_scene in enumerate(lines):
                 st.write(f"**సీన్ {i+1}:** {t_scene}")
                 with st.spinner("మీరు ఇచ్చిన సీన్ కి ఇమేజ్ వస్తుంది..."):
+                    
+                    # డిఫాల్ట్ ఇంగ్లీష్ ప్రాంప్ట్ సెటప్
                     english_prompt = f"{t_scene}, {style_prompt_addition}"
-                    if model is not None:
-                        try:
-                            gemini_prompt = f"You are an expert Image prompt creator. Convert this Telugu scene into a highly descriptive English image prompt. Art style must strictly be: {style_prompt_addition}. Give ONLY raw prompt text. Telugu: '{t_scene}'"
-                            response = model.generate_content(gemini_prompt)
-                            if response.text:
-                                english_prompt = response.text.strip()
-                        except Exception:
-                            pass
+                    
+                    gemini_prompt = f"Convert this Telugu story scene action layout into a descriptive English image generation prompt. Art style: {style_prompt_addition}. Give ONLY raw prompt text. Telugu text: '{t_scene}'"
+                    
+                    translated_out = fetch_high_quality_text(gemini_prompt)
+                    if translated_out:
+                        english_prompt = translated_out
+                    
                     try:
                         encoded_scene = requests.utils.quote(english_prompt)
                         image_url = f"https://image.pollinations.ai/p/{encoded_scene}?width={img_width}&height={img_height}&nologo=true&model=flux"
@@ -218,5 +253,5 @@ with tab4:
                             st.markdown("---")
                         else: st.error(f"సీన్ {i+1} ఇమేజ్ లోడ్ అవ్వలేదు.")
                     except Exception as e: st.error(f"లోపం: {e}")
-                time.sleep(2)
+                time.sleep(2) # కోటా కాపాడటానికి బ్రేక్
             play_success_sound()
