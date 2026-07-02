@@ -7,34 +7,33 @@ import requests
 # వెబ్‌సైట్ కాన్ఫిగరేషన్
 st.set_page_config(page_title="Telugu AI Studio Pro", page_icon="🎬", layout="wide")
 st.title("🎬 తెలుగు AI ఆల్-ఇన్-వన్ వీడియో క్రియేటర్ స్టూడియో")
-st.write("ఇక్కడ మీరు కథను జనరేట్ చేయవచ్చు, నాచురల్ వాయిస్ ఓవర్ పొందవచ్చు మరియు HD క్వాలిటీ సీన్ ఇమేజ్స్ (9:16 / 16:9) క్రియేట్ చేయవచ్చు.")
+st.write("ఇక్కడ మీరు కేవలం టాపిక్ ఇస్తే కథ జనరేట్ అవుతుంది, నాచురల్ వాయిస్ ఓవర్ పొందవచ్చు మరియు 2D కార్టూన్ లేదా నార్మల్ HD ఇమేజ్స్ (9:16 / 16:9) క్రియేట్ చేయవచ్చు.")
 
 # మూడు ప్రధాన ట్యాబ్స్
 tab1, tab2, tab3 = st.tabs([
-    "📝 1. AI స్టోరీ & స్క్రిప్ట్ జనరేటర్", 
+    "📝 1. AI స్టోరీ జనరేటర్ (Topic)", 
     "🎙️ 2. నాచురల్ AI వాయిస్ ఓవర్", 
-    "🎨 3. HD సీన్ ఇమేజ్ జనరేటర్"
+    "🎨 3. HD సీన్ ఇమేజ్ జనరేటర్ (2D Cartoon/Normal)"
 ])
 
 # --- ట్యాబ్ 1: AI స్టోరీ జనరేటర్ ---
 with tab1:
-    st.write("### 📝 మీ ఐడియా ఇవ్వండి - పూర్తి కథను పొందండి")
-    st.write("మీకు కావాల్సిన కథాంశాన్ని ఇక్కడ టైప్ చేయండి, AI పూర్తి కథను మరియు ఇమేజ్ సీన్లను సృష్టిస్తుంది.")
+    st.write("### 📝 మీ టాపిక్ ఇవ్వండి - పూర్తి కథను పొందండి")
+    st.write("మీకు కావాల్సిన కథాంశం లేదా ఒక చిన్న లైన్ ఇక్కడ టైప్ చేయండి, AI పూర్తి కథను మరియు ఇమేజ్ సీన్లను సృష్టిస్తుంది.")
     
     story_idea = st.text_input(
-        "కథ ఐడియా (ఉదాహరణకు: అనగనగా ఒక గ్రామంలో ఒక పేద రైతు మరియు ఒక మాయా పక్షి):",
-        placeholder="ఇక్కడ మీ ఐడియా రాయండి..."
+        "కథ టాపిక్ (ఉదాహరణకు: అనగనగా ఒక గ్రామంలో ఒక పేద రైతు మరియు ఒక మాయా పక్షి):",
+        placeholder="ఇక్కడ మీ కథ టాపిక్ రాయండి..."
     )
     
     if st.button("AI పూర్తి కథను తయారు చేయి ✨"):
         if story_idea.strip() == "":
-            st.warning("దయచేసి ఏదైనా ఒక లైన్ ఐడియా ఇవ్వండి!")
+            st.warning("దయచేసి ఏదైనా ఒక టాపిక్ ఇవ్వండి!")
         else:
             with st.spinner("AI మీ కోసం అద్భుతమైన కథను మరియు సీన్లను డిజైన్ చేస్తోంది..."):
                 try:
-                    # Pollinations Text API ద్వారా కథ మరియు సీన్లు ఒకేసారి జనరేట్ చేయడం
                     prompt = (
-                        f"Write a beautiful short story about: '{story_idea}' in pure Telugu language. "
+                        f"Write a beautiful short story about the topic: '{story_idea}' in pure Telugu language. "
                         f"After completing the story, create a separate section called 'SCENES FOR IMAGE GENERATION' "
                         f"and provide 3 to 5 separate scenes from the story on new lines. Each scene must be written in "
                         f"Telugu so the user can easily copy them for creating images. Make it highly engaging."
@@ -61,21 +60,18 @@ with tab2:
     )
     voice = "te-IN-MohanNeural" if "Mohan" in voice_option else "te-IN-ShrutiNeural"
     
-    st.write("#### 🎛️ వాయిస్ క్లారిటీ సెట్టింగ్స్ (Voice Fine-Tuning):")
+    st.write("#### 🎛️ వాయిస్ క్లారిటీ సెッティングస్ (Voice Fine-Tuning):")
     col1, col2, col3 = st.columns(3)
     
     with col1:
-        # వాయిస్ వేగం (డిఫాల్ట్‌గా -5% పెట్టాం, దీనివల్ల వాయిస్ స్పష్టంగా ఉంటుంది)
         speed_slider = st.slider("వాయిస్ వేగం (Speed):", -50, 50, -5, 5, format="%d%%", key="sp_voice")
         voice_speed = f"{'' if speed_slider < 0 else '+'}{speed_slider}%"
         
     with col2:
-        # వాల్యూమ్ స్థాయి
         volume_slider = st.slider("వాల్యూమ్ స్థాయి (Volume):", -50, 50, 5, 5, format="%d%%", key="vl_voice")
         voice_volume = f"{'' if volume_slider < 0 else '+'}{volume_slider}%"
         
     with col3:
-        # వాయిస్ పిచ్ (బేస్ పెంచడానికి లేదా తగ్గించడానికి)
         pitch_slider = st.slider("వాయిస్ పిచ్/బేస్ (Pitch):", -20, 20, 0, 1, format="%dHz", key="pt_voice")
         voice_pitch = f"{'' if pitch_slider < 0 else '+'}{pitch_slider}Hz"
     
@@ -104,7 +100,7 @@ with tab2:
                     audio_data += chunk_data["data"]
         return audio_data
 
-    if st.button("హై-క్వాలిటీ ఆడియో జనరేట్ చేయి 🚀"):
+    if st.button("హై-क्వాలిటీ ఆడియో జనరేట్ చేయి 🚀"):
         if script_text.strip() == "":
             st.warning("దయచేసి స్క్రిప్ట్ బాక్స్‌లో టెక్స్ట్ పేస్ట్ చేయండి!")
         else:
@@ -121,16 +117,27 @@ with tab2:
                 except Exception as e:
                     st.error(f"లోపం: {e}")
 
-# --- టుబ్ 3: HD ఇమేజ్ జనరేటర్ ---
+# --- ట్యాబ్ 3: HD ఇమేజ్ జనరేటర్ ---
 with tab3:
     st.write("### 🎨 తెలుగు సీన్స్ బట్టి హై-క్వాలిటీ HD ఇమేజ్ జనరేటర్")
     
-    st.write("#### 📐 ఇమేజ్ సైజ్/రేషియో ఎంచుకోండి:")
-    ratio_option = st.radio(
-        "వీడియో టైప్ (Aspect Ratio):",
-        ("యూట్యూబ్ నార్మల్ వీడియో (16:9 - Landscape) [డిఫాల్ట్]", "షార్ట్స్/రీల్స్/టిక్‌టాక్ (9:16 - Portrait)"),
-        index=0
-    )
+    col_ratio, col_style = st.columns(2)
+    
+    with col_ratio:
+        st.write("#### 📐 ఇమేజ్ సైజ్/రేషియో ఎంచుకోండి:")
+        ratio_option = st.radio(
+            "వీడియో టైప్ (Aspect Ratio):",
+            ("యూట్యూబ్ నార్మల్ వీడియో (16:9 - Landscape) [డిఫాల్ట్]", "షార్ట్స్/రీల్స్/టిక్‌టాక్ (9:16 - Portrait)"),
+            index=0
+        )
+        
+    with col_style:
+        st.write("#### 🎭 ఇమేజ్ స్టైల్ ఎంచుకోండి:")
+        style_option = st.radio(
+            "ఫోటో రకం (Image Style):",
+            ("2D కార్టూన్ స్టైల్ (Pure 2D Cartoon/Anime Style for Kids)", "నార్మల్ రియలిస్టిక్ స్టైల్ (Photorealistic/Cinematic)"),
+            index=0
+        )
     
     # రేషియో కాన్ఫిగరేషన్
     if "16:9" in ratio_option:
@@ -139,6 +146,12 @@ with tab3:
     else:
         img_width = 576
         img_height = 1024
+
+    # జూమ్ అవ్వకుండా, క్యారెక్టర్లు, వస్తువులు, బ్యాక్‌గ్రౌండ్ పర్ఫెక్ట్‌గా కనిపించేలా ప్రాంప్ట్ రూల్స్ పెట్టాం
+    if "2D కార్టూన్" in style_option:
+        style_prompt_addition = "in a beautiful pure 2D cartoon illustration style, traditional anime flat colors, clear outlines, cute studio ghibli style, full wide shot, NO 3D, NO realism. Show full character bodies, clear environment background, and all scene properties perfectly without zooming in, distinct details."
+    else:
+        style_prompt_addition = "photorealistic, 8k resolution, cinematic lighting, highly detailed masterpiece, real-life look, full wide view shot, showing full body and complete surrounding environment, capturing all properties and background elements clearly without extreme close-ups or zooming."
 
     st.write("#### 📝 మీ తెలుగు సీన్స్ ఇక్కడ ఇవ్వండి (లైన్ బై లైన్):")
     telugu_script = st.text_area(
@@ -153,17 +166,18 @@ with tab3:
             st.warning("దయచేసి కనీసం ఒక తెలుగు సీన్ అయినా టైప్ చేయండి!")
         else:
             telugu_scenes = [line.strip() for line in telugu_script.split('\n') if line.strip()]
-            st.success(f"మొత్తం {len(telugu_scenes)} సీన్లు కనుగొనబడ్డాయి. అల్ట్రా HD ఇమేజెస్ తయారవుతున్నాయి...")
+            st.success(f"మొత్తం {len(telugu_scenes)} సీన్లు కనుగొనబడ్డాయి. పర్ఫెక్ట్ ఇమేజెస్ తయారవుతున్నాయి...")
             
             for i, t_scene in enumerate(telugu_scenes):
                 st.write(f"**సీన్ {i+1} (తెలుగు):** {t_scene}")
                 
-                with st.spinner(f"సీన్ {i+1} HD ఫోటో తయారవుతోంది... దయచేసి ఆగండి..."):
+                with st.spinner(f"సీన్ {i+1} ఫోటో తయారవుతోంది... దయచేసి ఆగండి..."):
                     try:
-                        # బ్యాక్‌గ్రౌండ్ ప్రాంప్ట్ ఇంప్రూవ్‌మెంట్ ట్రిక్ ఫర్ HD క్వాలిటీ
                         translate_prompt = (
-                            f"Convert this Telugu scene into a highly detailed, 8k resolution, photorealistic, cinematic lighting, "
-                            f"masterpiece quality English image generation prompt. Give me only the detailed English description, no other text. "
+                            f"Convert this Telugu scene into a highly detailed English image generation prompt. "
+                            f"The style and framing of the image must be: {style_prompt_addition}. "
+                            f"Ensure the camera is far enough to show the full character, the background environment, and all properties clearly. "
+                            f"Give me only the detailed English description, no other text. "
                             f"Telugu text: '{t_scene}'"
                         )
                         encoded_t_prompt = requests.utils.quote(translate_prompt)
@@ -172,7 +186,6 @@ with tab3:
                         if translate_response.status_code == 200:
                             english_prompt = translate_response.text.strip()
                             
-                            # డైనమిక్ రేషియో మరియు లేటెస్ట్ ఫ్లక్స్(Flux) మోడల్ తో కాల్
                             encoded_scene = requests.utils.quote(english_prompt)
                             image_url = f"https://image.pollinations.ai/p/{encoded_scene}?width={img_width}&height={img_height}&nologo=true&model=flux"
                             
@@ -190,4 +203,3 @@ with tab3:
                             else: st.error(f"సీన్ {i+1} ఇమేజ్ లోడ్ అవ్వలేదు.")
                         else: st.error(f"తెలుగు లైన్‌ను అర్థం చేసుకోవడంలో లోపం వచ్చింది.")
                     except Exception as e: st.error(f"తప్పు జరిగింది: {e}")
-        
