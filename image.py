@@ -6,76 +6,157 @@ import requests
 import io
 
 # వెబ్‌సైట్ కాన్ఫిగరేషన్
-st.set_page_config(page_title="Telugu AI Auto Studio", page_icon="🎬", layout="wide")
-st.title("🎬 తెలుగు AI ఆటోమేటిక్ వీడియో స్టూడియో")
-st.write("స్టెప్-బై-స్టెప్ ప్రాసెస్: ముందు కథ వస్తుంది, ఆపై సీన్లుగా విడిపోతుంది, తర్వాత వాయిస్ మరియు ఇమేజెస్ ఒకే ఫ్లోలో జనరేట్ అవుతాయి!")
+st.set_page_config(page_title="Telugu AI Cartoon Studio", page_icon="🎬", layout="wide")
 
-# సెషన్ స్టేట్ (డేటాను ఆటోమేటిక్‌గా ట్రాన్స్‌ఫర్ చేయడానికి)
+# ==========================================
+# CUSTOM CSS FOR COLORFUL ATTRACTIVE CARTOON UI
+# ==========================================
+st.markdown("""
+    <style>
+    /* మెయిన్ బ్యాక్‌గ్రౌండ్ కలర్ */
+    .stApp {
+        background-color: #f7f9fc;
+    }
+    
+    /* మెయిన్ టైటిల్ స్టైలింగ్ */
+    .main-title {
+        font-size: 42px !important;
+        color: #ff6f61 !important;
+        font-weight: bold;
+        text-align: center;
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+        margin-bottom: 5px;
+    }
+    .sub-title {
+        font-size: 18px;
+        color: #4a5568;
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    /* ప్రతి స్టెప్ కార్డ్ బాక్స్ (Cartoon Container) */
+    .step-box {
+        background-color: #ffffff;
+        padding: 25px;
+        border-radius: 20px;
+        box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.05);
+        border: 3px solid #e2e8f0;
+        margin-bottom: 30px;
+    }
+    
+    /* హెడర్స్ రంగులు */
+    h1, h2, h3 {
+        color: #2b6cb0 !important;
+        font-family: 'Comic Sans MS', cursive, sans-serif;
+    }
+    
+    /* స్ట్రీమ్‌లిట్ బటన్స్ కార్టూన్ స్టైల్ లోకి మార్చడం */
+    div.stButton > button {
+        background-color: #ff8c00 !important;
+        color: white !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
+        border-radius: 25px !important;
+        border: 2px solid #e28743 !important;
+        padding: 10px 25px !important;
+        box-shadow: 0px 4px 0px #d97706 !important;
+        transition: all 0.2s ease;
+    }
+    div.stButton > button:hover {
+        transform: translateY(2px);
+        box-shadow: 0px 2px 0px #d97706 !important;
+        background-color: #ffa500 !important;
+    }
+    div.stButton > button:active {
+        transform: translateY(4px);
+        box-shadow: none !important;
+    }
+    
+    /* డౌన్‌లోడ్ బటన్ కి వేరే కలర్ (Green/Teal) */
+    div.stDownloadButton > button {
+        background-color: #2ec4b6 !important;
+        color: white !important;
+        border-radius: 25px !important;
+        border: 2px solid #20a498 !important;
+        box-shadow: 0px 4px 0px #0f7a70 !important;
+    }
+    div.stDownloadButton > button:hover {
+        background-color: #33d6c7 !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
+# వెబ్‌సైట్ హెడర్
+st.markdown('<div class="main-title">🎬 తెలుగు AI కార్టూన్ వీడియో స్టూడియో</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">మీ ఐడియా ఇవ్వండి - వాయిస్ ఓవర్ మరియు బొమ్మలతో కూడిన అద్భుతమైన కథను నిమిషాల్లో పొందండి!</div>', unsafe_allow_html=True)
+
+# సెషన్ స్టేట్
 if "story_text" not in st.session_state:
     st.session_state.story_text = ""
 if "scenes_text" not in st.session_state:
     st.session_state.scenes_text = ""
 
-st.markdown("---")
-
 # ==========================================
 # STEP 1: స్టోరీ మరియు సీన్స్ ఆటోమేటిక్ జనరేషన్
 # ==========================================
-st.header("Step 1: 📝 కథ మరియు సీన్స్ జనరేట్ చేయండి")
-topic = st.text_input("మీ కథ టాపిక్ ఇక్కడ ఇవ్వండి:", placeholder="ఉదాహరణకు: ఒక అడవిలో సింహం మరియు ఎలుక స్నేహం...")
+st.markdown('<div class="step-box">', unsafe_allow_html=True)
+st.header("Step 1: 📝 కథ మరియు సీన్స్ సిద్ధం చేయండి")
+topic = st.text_input("మీ కథ టాపిక్ ఇక్కడ ఇవ్వండి:", placeholder="ఉదాహరణకు: అడవిలో సింహం మరియు ఎలుక స్నేహం...")
 
-if st.button("కథ & సీన్లను జనరేట్ చేయి ✨"):
-    if topic.strip() == "":
-        st.warning("దయచేసి ఏదైనా ఒక టాపిక్ ఇవ్వండి!")
-    else:
-        with st.spinner("AI మీ కథను రాసి, సీన్లను విడగొడుతోంది... దయచేసి ఆగండి..."):
-            try:
-                # కథ మరియు సీన్లను కచ్చితంగా విడగొట్టడానికి లాజిక్
-                prompt = (
-                    f"Write a highly engaging short story in Telugu about: '{topic}'. "
-                    f"After completing the story, strictly write the exact word '===SCENES===' on a new line. "
-                    f"Below that word, break down the story into 4 to 5 visual scenes in Telugu. "
-                    f"Each scene must be on a new line."
-                )
-                encoded_prompt = requests.utils.quote(prompt)
-                response = requests.get(f"https://text.pollinations.ai/{encoded_prompt}?json=false")
-                
-                if response.status_code == 200:
-                    full_output = response.text
-                    
-                    # ===SCENES=== అనే పదం దగ్గర కథను, సీన్లను రెండు ముక్కలుగా చేయడం
-                    if "===SCENES===" in full_output:
-                        parts = full_output.split("===SCENES===")
-                        st.session_state.story_text = parts[0].strip()
-                        st.session_state.scenes_text = parts[1].strip()
-                    else:
-                        st.session_state.story_text = full_output.strip()
-                        st.session_state.scenes_text = "సీన్స్ సరిగ్గా విడిపోలేదు. దయచేసి మళ్ళీ జనరేట్ చేయండి."
-                        
-                    st.success("కథ మరియు సీన్లు విజయవంతంగా విడిపోయాయి! కింద చెక్ చేసుకోండి.")
-                else:
-                    st.error("సర్వర్ బిజీగా ఉంది, మళ్లీ ట్రై చేయండి.")
-            except Exception as e:
-                st.error(f"లోపం: {e}")
+col_btn1, col_btn2 = st.columns(2)
 
-# జనరేట్ అయిన వాటిని బాక్సుల్లో చూపించడం (యూజర్ కావాలంటే ఇక్కడ మార్పులు చేసుకోవచ్చు)
+with col_btn1:
+    if st.button("1. కథ జనరేట్ చేయి 📖", key="gen_only_story"):
+        if topic.strip() == "":
+            st.warning("దయచేసి ఏదైనా ఒక టాపిక్ ఇవ్వండి!")
+        else:
+            with st.spinner("AI మీ కోసం అద్భుతమైన కథను రాస్తోంది..."):
+                try:
+                    prompt = f"Write a highly engaging short story in pure Telugu language about the topic: '{topic}'."
+                    encoded_prompt = requests.utils.quote(prompt)
+                    response = requests.get(f"https://text.pollinations.ai/{encoded_prompt}?json=false")
+                    if response.status_code == 200:
+                        st.session_state.story_text = response.text.strip()
+                        st.success("కథ సిద్ధమైంది! ఇప్పుడు పక్కన ఉన్న సీన్స్ బటన్ నొక్కండి.")
+                    else: st.error("సర్వర్ బిజీగా ఉంది, మళ్లీ ట్రై చేయండి.")
+                except Exception as e: st.error(f"లోపం: {e}")
+
+with col_btn2:
+    if st.button("2. కథ నుండి సీన్లను విడగొట్టు 🎬", key="gen_only_scenes"):
+        if st.session_state.story_text.strip() == "":
+            st.warning("ముందుగా ఎడమవైపు బటన్ నొక్కి కథను జనరేట్ చేయండి!")
+        else:
+            with st.spinner("కథ నుండి విజువల్ సీన్లను వేరు చేస్తోంది..."):
+                try:
+                    prompt = (
+                        f"Read this Telugu story: '{st.session_state.story_text}'. "
+                        f"Break it down into 4 to 5 separate visual scenes in Telugu. "
+                        f"Each scene must be strictly on a new line. Do not add numbers or symbols at the start, just action text."
+                    )
+                    encoded_prompt = requests.utils.quote(prompt)
+                    response = requests.get(f"https://text.pollinations.ai/{encoded_prompt}?json=false")
+                    if response.status_code == 200:
+                        st.session_state.scenes_text = response.text.strip()
+                        st.success("సీన్లు విజయవంతంగా విడిపోయాయి!")
+                    else: st.error("సర్వర్ బిజీగా ఉంది, మళ్లీ ట్రై చేయండి.")
+                except Exception as e: st.error(f"లోపం: {e}")
+
 colA, colB = st.columns(2)
 with colA:
     edited_story = st.text_area("📖 మీ మెయిన్ కథ (వాయిస్ కోసం):", value=st.session_state.story_text, height=250)
 with colB:
     edited_scenes = st.text_area("🎬 ఇమేజ్ సీన్లు (ఒక్కో లైన్‌లో ఒకటి):", value=st.session_state.scenes_text, height=250)
 
-# బాక్సుల్లో ఏమైనా మారిస్తే అది సేవ్ అవ్వడానికి
 st.session_state.story_text = edited_story
 st.session_state.scenes_text = edited_scenes
+st.markdown('</div>', unsafe_allow_html=True) # Step 1 Box Close
 
-st.markdown("---")
 
 # ==========================================
 # STEP 2: కథను చదవడం (Voice Over Generation)
 # ==========================================
+st.markdown('<div class="step-box">', unsafe_allow_html=True)
 st.header("Step 2: 🎙️ కథను వాయిస్ లాగా మార్చండి")
-st.write("స్టెప్ 1 లో వచ్చిన కథను ఆటోమేటిక్‌గా నాచురల్ వాయిస్‌తో చదివించండి.")
 
 voice_option = st.selectbox("వాయిస్ ఎంచుకోండి:", ("మగవారి వాయిస్ (Mohan)", "ఆడవారి వాయిస్ (Shruti)"))
 voice = "te-IN-MohanNeural" if "Mohan" in voice_option else "te-IN-ShrutiNeural"
@@ -126,23 +207,22 @@ if st.button("కథను ఆడియోగా మార్చు 🚀"):
                     generate_audio(st.session_state.story_text, voice, voice_speed, voice_volume, voice_pitch)
                 )
                 st.audio(final_audio_bytes, format="audio/mp3")
-                st.download_button(label="📥 కథ ఆడియో డౌన్‌లోడ్", data=final_audio_bytes, file_name="story_voice.mp3", mime="audio/mp3")
-            except Exception as e:
-                st.error(f"లోపం: {e}")
+                st.download_button(label="📥 కథ ఆడియో డౌน์โหลด", data=final_audio_bytes, file_name="story_voice.mp3", mime="audio/mp3")
+            except Exception as e: st.error(f"లోపం: {e}")
+st.markdown('</div>', unsafe_allow_html=True) # Step 2 Box Close
 
-st.markdown("---")
 
 # ==========================================
 # STEP 3: ఇమేజ్ జనరేషన్ (Images for Scenes)
 # ==========================================
+st.markdown('<div class="step-box">', unsafe_allow_html=True)
 st.header("Step 3: 🎨 సీన్స్ నుండి ఇమేజెస్ జనరేట్ చేయండి")
-st.write("స్టెప్ 1 లో విడిపోయిన సీన్లను పర్ఫెక్ట్ 2D/HD ఫొటోలుగా మార్చుకోండి.")
 
 col_ratio, col_style = st.columns(2)
 with col_ratio:
     ratio_option = st.radio("వీడియో ఫార్మాట్:", ("16:9 (యూట్యూబ్) [డిఫాల్ట్]", "9:16 (షార్ట్స్/రీల్స్)"))
 with col_style:
-    style_option = st.radio("ఫోటో రకం:", ("తెలుగు 2D కామిక్ స్ట్రిప్ (Cartoon)", "సినిమాటిక్ రియలిస్టిక్ (Real Photo)"))
+    style_option = st.radio("ఫోటో రకం:", ("2D కామిక్ స్ట్రిప్ (Cartoon)", "సినిమాటిక్ రియలిస్టిక్ (Real Photo)"))
 
 img_width, img_height = (1024, 576) if "16:9" in ratio_option else (576, 1024)
 
@@ -159,7 +239,7 @@ else:
 
 if st.button("సీన్ ఇమేజెస్ జనరేట్ చేయి 🎨"):
     if st.session_state.scenes_text.strip() == "":
-        st.warning("ముందుగా స్టెప్ 1 లో సీన్స్ జనరేట్ చేయండి!")
+        st.warning("ముందుగా స్టెప్ 1 లో 'సీన్లను విడగొట్టు' బటన్ నొక్కండి!")
     else:
         telugu_scenes = [line.strip() for line in st.session_state.scenes_text.split('\n') if line.strip()]
         st.success(f"మొత్తం {len(telugu_scenes)} సీన్లకు ఇమేజెస్ తయారవుతున్నాయి...")
@@ -196,3 +276,4 @@ if st.button("సీన్ ఇమేజెస్ జనరేట్ చేయి
                         else: st.error(f"సీన్ {i+1} లోడ్ అవ్వలేదు.")
                     else: st.error("లైన్ ట్రాన్స్‌లేషన్‌లో లోపం వచ్చింది.")
                 except Exception as e: st.error(f"లోపం: {e}")
+st.markdown('</div>', unsafe_allow_html=True) # Step 3 Box Close
