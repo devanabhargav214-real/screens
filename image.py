@@ -3,30 +3,32 @@ import re
 import streamlit as st
 import edge_tts
 import requests
+import io
 
 # వెబ్‌సైట్ కాన్ఫిగరేషన్
 st.set_page_config(page_title="Telugu AI Studio Pro", page_icon="🎬", layout="wide")
 st.title("🎬 తెలుగు AI ఆల్-ఇన్-వన్ వీడియో క్రియేటర్ స్టూడియో")
-st.write("ఇక్కడ మీరు కేవలం టాపిక్ ఇస్తే కథ జనరేట్ అవుతుంది, నాచురల్ వాయిస్ ఓవర్ పొందవచ్చు మరియు 2D కార్టూన్ లేదా నార్మల్ HD ఇమేజ్స్ (9:16 / 16:9) క్రియేట్ చేయవచ్చు.")
+st.write("ఇక్కడ మీరు కేవలం టాపిక్ ఇస్తే కథ జనరేట్ అవుతుంది, నాచురల్ వాయిస్ ఓవర్ పొందవచ్చు మరియు 2D కార్టూన్ లేదా న్యూస్ పేపర్ HD ఇమేజ్స్ క్రియేట్ చేయవచ్చు.")
 
 # మూడు ప్రధాన ట్యాబ్స్
 tab1, tab2, tab3 = st.tabs([
     "📝 1. AI స్టోరీ జనరేటర్ (Topic)", 
     "🎙️ 2. నాచురల్ AI వాయిస్ ఓవర్", 
-    "🎨 3. HD సీన్ ఇమేజ్ జనరేటర్ (2D Cartoon/Normal)"
+    "🎨 3. HD సీన్ ఇమేజ్ జనరేటర్ (Cartoon/Newspaper)"
 ])
 
 # --- ట్యాబ్ 1: AI స్టోరీ జనరేటర్ ---
 with tab1:
     st.write("### 📝 మీ టాపిక్ ఇవ్వండి - పూర్తి కథను పొందండి")
-    st.write("మీకు కావాల్సిన కథాంశం లేదా ఒక చిన్న లైన్ ఇక్కడ టైప్ చేయండి, AI పూర్తి కథను మరియు ఇమేజ్ సీన్లను సృష్టిస్తుంది.")
+    st.write("మీకు కావాల్సిన కథాంశం ఇక్కడ టైప్ చేయండి, AI పూర్తి కథను మరియు ఇమేజ్ సీన్లను సృష్టిస్తుంది.")
     
     story_idea = st.text_input(
         "కథ టాపిక్ (ఉదాహరణకు: అనగనగా ఒక గ్రామంలో ఒక పేద రైతు మరియు ఒక మాయా పక్షి):",
-        placeholder="ఇక్కడ మీ కథ టాపిక్ రాయండి..."
+        placeholder="ఇక్కడ మీ కథ టాపిక్ రాయండి...",
+        key="main_story_idea"
     )
     
-    if st.button("AI పూర్తి కథను తయారు చేయి ✨"):
+    if st.button("AI పూర్తి కథను తయారు చేయి ✨", key="gen_story_btn"):
         if story_idea.strip() == "":
             st.warning("దయచేసి ఏదైనా ఒక టాపిక్ ఇవ్వండి!")
         else:
@@ -44,7 +46,7 @@ with tab1:
                     if response.status_code == 200:
                         st.success("మీ కథ మరియు సీన్స్ విజయవంతంగా జనరేట్ అయ్యాయి!")
                         st.markdown("#### 📖 జనరేట్ అయిన కథ & సీన్స్:")
-                        st.text_area("ఇక్కడి నుండి టెక్స్ట్‌ని కాపీ చేసి పక్క ట్యాబ్స్‌లో వాడుకోండి:", value=response.text, height=450)
+                        st.text_area("ఇక్కడి నుండి టెక్స్ట్‌ని కాపీ చేసి పక్క ట్యాబ్స్‌లో వాడుకోండి:", value=response.text, height=450, key="story_output_box")
                     else:
                         st.error("కథను జనరేట్ చేయడం కుదరలేదు, దయచేసి మళ్లీ ట్రై చేయండి.")
                 except Exception as e:
@@ -57,6 +59,7 @@ with tab2:
     voice_option = st.selectbox(
         "వాయిస్ ఎంచుకోండి (Voice Model):",
         ("మగవారి వాయిస్ (Mohan Neural - క్లియర్ అండ్ బేస్)", "ఆడవారి వాయిస్ (Shruti Neural - సాఫ్ట్ అండ్ నాచురల్)"),
+        key="voice_select_opt"
     )
     voice = "te-IN-MohanNeural" if "Mohan" in voice_option else "te-IN-ShrutiNeural"
     
@@ -100,7 +103,7 @@ with tab2:
                     audio_data += chunk_data["data"]
         return audio_data
 
-    if st.button("హై-क्వాలిటీ ఆడియో జనరేట్ చేయి 🚀"):
+    if st.button("హై-క్వాలిటీ ఆడియో జనరేట్ చేయి 🚀", key="gen_audio_btn"):
         if script_text.strip() == "":
             st.warning("దయచేసి స్క్రిప్ట్ బాక్స్‌లో టెక్స్ట్ పేస్ట్ చేయండి!")
         else:
@@ -112,13 +115,12 @@ with tab2:
                         generate_audio(script_text, voice, voice_speed, voice_volume, voice_pitch)
                     )
                     st.audio(final_audio_bytes, format="audio/mp3")
-                    st.download_button(label="📥 నాచురల్ ఆడియో ఫైల్ డౌน์โหลด", data=final_audio_bytes, file_name="telugu_natural_voice.mp3", mime="audio/mp3")
+                    st.download_button(label="📥 నాచురల్ ఆడియో ఫైల్ డౌน์โหลด", data=final_audio_bytes, file_name="telugu_natural_voice.mp3", mime="audio/mp3", key="dl_audio_btn")
                     st.success("వాయిస్ విజయవంతంగా జనరేట్ అయింది!")
                 except Exception as e:
                     st.error(f"లోపం: {e}")
 
 # --- ట్యాబ్ 3: HD ఇమేజ్ జనరేటర్ ---
-# --- ట్యాబ్ 3: HD ఇమేజ్ జనరేటర్ (NEWSPAPER & TELUGU CULTURE UPDATE) ---
 with tab3:
     st.write("### 🎨 తెలుగు సీన్స్ బట్టి హై-క్వాలిటీ HD ఇమేజ్ జనరేటర్")
     
@@ -129,7 +131,8 @@ with tab3:
         ratio_option = st.radio(
             "వీడియో టైప్ (Aspect Ratio):",
             ("యూట్యూబ్ నార్మల్ వీడియో (16:9 - Landscape) [డిఫాల్ట్]", "షార్ట్స్/రీల్స్/టిక్‌టాక్ (9:16 - Portrait)"),
-            index=0
+            index=0,
+            key="ratio_choice"
         )
         
     with col_style:
@@ -141,7 +144,8 @@ with tab3:
                 "న్యూస్ పేపర్ స్టైల్ (Vintage Newspaper Print/Sketch Style)",
                 "నార్మల్ రియలిస్టిక్ స్టైల్ (Photorealistic/Cinematic)"
             ),
-            index=0
+            index=0,
+            key="style_choice"
         )
     
     # రేషియో కాన్ఫిగరేషన్
@@ -167,10 +171,10 @@ with tab3:
         "ఒక్కో లైన్‌లో ఒక్కో సీన్ ఇవ్వండి:",
         placeholder="ఒక పల్లెటూర్లో ఒక తెలుగు రైతు పొలంలో పని చేస్తున్నాడు\nఒక ముసలి తాత అరుగు మీద కూర్చుని పేపర్ చదువుతున్నాడు",
         height=200,
-        key="telugu_script"
+        key="telugu_script_box"
     )
     
-    if st.button("HD సీన్ ఇమేజెస్ జనరేట్ చేయి 🎨"):
+    if st.button("HD సీన్ ఇమేజెస్ జనరేట్ చేయి 🎨", key="gen_images_btn"):
         if telugu_script.strip() == "":
             st.warning("దయచేసి కనీసం ఒక తెలుగు సీన్ అయినా టైప్ చేయండి!")
         else:
@@ -199,16 +203,20 @@ with tab3:
                             
                             img_response = requests.get(image_url)
                             if img_response.status_code == 200:
-                                st.image(img_response.content, caption=f"HD Scene {i+1} Output", use_container_width=True)
+                                # ఇమేజ్ బైనరీ డేటాను ప్రదర్శించడం
+                                image_bytes = img_response.content
+                                st.image(image_bytes, caption=f"HD Scene {i+1} Output", use_container_width=True)
+                                
+                                # ఇమేజ్ డౌన్‌లోడ్ ఫిక్స్: BytesIO తో బఫర్ చేసి పంపడం వల్ల డౌన్‌లోడ్ పక్కాగా అవుతుంది
+                                img_buffer = io.BytesIO(image_bytes)
                                 st.download_button(
                                     label=f"📥 సీన్ {i+1} HD ఇమేజ్ డౌน์โหลด",
-                                    data=img_response.content,
+                                    data=img_buffer,
                                     file_name=f"hd_scene_{i+1}.jpg",
                                     mime="image/jpeg",
-                                    key=f"img_dl_{i}"
+                                    key=f"img_dl_fixed_{i}"
                                 )
                                 st.markdown("---")
                             else: st.error(f"సీన్ {i+1} ఇమేజ్ లోడ్ అవ్వలేదు.")
                         else: st.error(f"తెలుగు లైన్‌ను అర్థం చేసుకోవడంలో లోపం వచ్చింది.")
                     except Exception as e: st.error(f"తప్పు జరిగింది: {e}")
-                        
