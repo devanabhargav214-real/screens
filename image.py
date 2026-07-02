@@ -7,7 +7,7 @@ import requests
 import io
 
 # వెబ్‌సైట్ కాన్ఫిగరేషన్
-st.set_page_config(page_title="Telugu AI Gemini Pro Studio", page_icon="🎬", layout="wide")
+st.set_page_config(page_title="Telugu AI Studio Pro", page_icon="🎬", layout="wide")
 
 # ==========================================
 # SIMPLE HIGH-CONTRAST WHITE & BLUE STYLING
@@ -19,7 +19,7 @@ st.markdown("""
         font-size: 26px; color: #ffffff !important; font-weight: bold; text-align: center;
         background-color: #1e3a8a; padding: 12px; border-radius: 8px; margin-bottom: 25px;
     }
-    button[data-baseweb="tab"] { font-size: 16px !important; font-weight: bold !important; color: #1e3a8a !important; }
+    button[data-baseweb="tab"] { font-size: 15px !important; font-weight: bold !important; color: #1e3a8a !important; }
     button[aria-selected="true"] { border-bottom-color: #1e3a8a !important; color: #1e3a8a !important; background-color: #eff6ff !important; }
     div.stButton > button {
         background-color: #1e3a8a !important; color: #ffffff !important; font-size: 15px !important;
@@ -38,7 +38,7 @@ st.markdown("""
 try:
     gemini_key = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=gemini_key)
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception:
     model = None
 
@@ -52,62 +52,59 @@ def trigger_vibration():
 
 st.markdown('<div class="main-heading">🎬 Gemini తెలుగు AI కంప్లీట్ వీడియో స్టూడియో</div>', unsafe_allow_html=True)
 
-# Session States
-if "content_text" not in st.session_state:
-    st.session_state.content_text = ""
-if "scenes_manual_text" not in st.session_state:
-    st.session_state.scenes_manual_text = "అడవిలో ఒక కాకి ఉంది.\nకాకికి చాలా దాహం వేసింది.\nఅక్కడ ఒక కుండ కనిపించింది.\nకుండలో నీళ్లు చాలా కిందకి ఉన్నాయి."
-
-tab1, tab2, tab3 = st.tabs(["📖 1. Gemini Story Generator", "🎙️ 2. Voice Over", "🎨 3. Gemini Image Generator"])
+# 4 పూర్తిగా విడివిడి ట్యాబ్స్ క్రియేషన్
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📖 1. Story Generator", 
+    "🎙️ 2. Voice Over", 
+    "🎬 3. Scenes Divider", 
+    "🎨 4. Image Generator"
+])
 
 # ==========================================
-# TAB 1: AI STORY GENERATOR
+# TAB 1: STORY GENERATOR
 # ==========================================
 with tab1:
-    st.write("### 📝 మీ టాపిక్ ఇవ్వండి - గూగుల్ జెమిని కథను రాస్తుంది")
-    user_topic = st.text_input("మీకు కావలసిన టాపిక్ ఇక్కడ టైప్ చేయండి:", placeholder="ఉదాహరణకు: తెలివైన కాకి కథ, చందమామ నీతి కథలు...")
-
-    if st.button("కథ జనరేట్ చేయి ✨", key="gen_content_tab"):
+    st.write("### 📝 1. కథను జనరేట్ చేయండి")
+    user_topic = st.text_input("మీ కథ టాపిక్ ఇవ్వండి:", placeholder="ఉదాహరణకు: తెలివైన కాకి కథ...", key="t1_topic")
+    
+    story_out = ""
+    if st.button("కథ జనరేట్ చేయి ✨", key="t1_btn"):
         if user_topic.strip() == "":
-            st.warning("దయచేసి ఏదైనా ఒక టాపిక్ టైప్ చేయండి!")
+            st.warning("దయచేసి టాపిక్ ఇవ్వండి!")
         elif model is None:
-            st.error("Gemini API Key సెట్ చేయబడలేదు! దయచేసి Streamlit Secrets లో GEMINI_API_KEY యాడ్ చేయండి.")
+            st.error("Gemini API Key సెట్ చేయబడలేదు!")
         else:
-            with st.spinner("గూగుల్ జెమిని సర్వర్ ద్వారా కథ సిద్ధమవుతోంది..."):
+            with st.spinner("కథ సిద్ధమవుతోంది..."):
                 try:
-                    response = model.generate_content(
-                        f"Write a beautiful, engaging short story in clear and pure Telugu language about the topic: '{user_topic}'. Ensure proper vocabulary and grammar."
-                    )
-                    if response.text:
-                        st.session_state.content_text = response.text.strip()
-                        st.success("కథ విజయవంతంగా సిద్ధమైంది!")
-                        play_success_sound()
-                except Exception as e:
-                    st.error(f"Gemini API లోపం వచ్చింది: {e}")
-
-    edited_content = st.text_area("📋 జనరేట్ అయిన కథ (ఇక్కడ మీరు మార్పులు చేసుకోవచ్చు):", value=st.session_state.content_text, height=250, key="content_area")
-    st.session_state.content_text = edited_content
+                    response = model.generate_content(f"Write a beautiful short story in pure Telugu language about: '{user_topic}'.")
+                    story_out = response.text.strip() if response.text else ""
+                    st.success("కథ రెడీ అయింది! దీన్ని కాపీ చేసుకోండి.")
+                    play_success_sound()
+                except Exception as e: st.error(f"లోపం: {e}")
+                
+    st.text_area("📋 ఇక్కడ వచ్చిన కథను కాపీ చేసుకోండి:", value=story_out, height=250, key="t1_area")
 
 # ==========================================
 # TAB 2: VOICE OVER
 # ==========================================
 with tab2:
-    st.write("### 🎙️ టెక్స్ట్‌ను నాచురల్ ఆడియో లాగా మార్చండి")
+    st.write("### 🎙️ 2. కథను పేస్ట్ చేసి ఆడియోగా మార్చండి")
+    input_voice_text = st.text_area("📋 మీరు వాయిస్ ఓవర్ చేయాలనుకుంటున్న కథను ఇక్కడ పేస్ట్ (Paste) చేయండి:", height=200, key="t2_area")
     
-    voice_option = st.selectbox("వాయిస్ మోడల్ ఎంచుకోండి (Voice):", ("మగవారి వాయిస్ (Mohan)", "ఆడవారి వాయిస్ (Shruti)"), key="voice_select")
+    voice_option = st.selectbox("వాయిస్ ఎంచుకోండి:", ("మగవారి వాయిస్ (Mohan)", "ఆడవారి వాయిస్ (Shruti)"), key="t2_select")
     voice = "te-IN-MohanNeural" if "Mohan" in voice_option else "te-IN-ShrutiNeural"
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        speed_slider = st.slider("వాయిస్ వేగం (Speed):", -50, 50, -4, 2, format="%d%%", key="speed_v")
+        speed_slider = st.slider("వేగం (Speed):", -50, 50, -4, 2, format="%d%%", key="t2_speed")
         voice_speed = f"{'' if speed_slider < 0 else '+'}{speed_slider}%"
         if speed_slider: trigger_vibration()
     with col2:
-        volume_slider = st.slider("వాల్యూమ్ స్థాయి (Volume):", -50, 50, 8, 2, format="%d%%", key="vol_v")
+        volume_slider = st.slider("వాల్యూమ్ (Volume):", -50, 50, 8, 2, format="%d%%", key="t2_vol")
         voice_volume = f"{'' if volume_slider < 0 else '+'}{volume_slider}%"
         if volume_slider: trigger_vibration()
     with col3:
-        pitch_slider = st.slider("వాయిస్ పిచ్ (Pitch):", -20, 20, 0, 1, format="%dHz", key="pitch_v")
+        pitch_slider = st.slider("పిచ్ (Pitch):", -20, 20, 0, 1, format="%dHz", key="t2_pitch")
         voice_pitch = f"{'' if pitch_slider < 0 else '+'}{pitch_slider}Hz"
         if pitch_slider: trigger_vibration()
 
@@ -116,8 +113,7 @@ with tab2:
         chunks = []
         current_chunk = ""
         for sentence in sentences:
-            if len(current_chunk) + len(sentence) + 1 <= max_chars:
-                current_chunk += " " + sentence if current_chunk else sentence
+            if len(current_chunk) + len(sentence) + 1 <= max_chars: current_chunk += " " + sentence if current_chunk else sentence
             else:
                 if current_chunk: chunks.append(current_chunk.strip())
                 current_chunk = sentence
@@ -130,99 +126,91 @@ with tab2:
         for chunk in chunks:
             communicate = edge_tts.Communicate(chunk, voice_model, rate=speed, volume=volume, pitch=pitch)
             async for chunk_data in communicate.stream():
-                if chunk_data["type"] == "audio":
-                    audio_data += chunk_data["data"]
+                if chunk_data["type"] == "audio": audio_data += chunk_data["data"]
         return audio_data
 
-    if st.button("టెక్స్ట్‌ను ఆడియోగా మార్చు 🚀", key="audio_gen_trigger"):
-        if st.session_state.content_text.strip() == "":
-            st.warning("మొదటి ట్యాబ్‌లో ఎలాంటి సమాచారం లేదు!")
+    if st.button("ఆడియోగా మార్చు 🚀", key="t2_btn"):
+        if input_voice_text.strip() == "":
+            st.warning("దయచేసి ముందుగా టెక్స్ట్ పేస్ట్ చేయండి!")
         else:
-            with st.spinner("స్పష్టమైన ఆడియో రికార్డ్ అవుతోంది..."):
+            with st.spinner("ఆడియో రికార్డ్ అవుతోంది..."):
                 try:
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
-                    final_audio_bytes = loop.run_until_complete(
-                        generate_audio(st.session_state.content_text, voice, voice_speed, voice_volume, voice_pitch)
-                    )
+                    final_audio_bytes = loop.run_until_complete(generate_audio(input_voice_text, voice, voice_speed, voice_volume, voice_pitch))
                     st.audio(final_audio_bytes, format="audio/mp3")
-                    st.download_button(label="📥 ఆడియో ఫైల్ డౌน์โหลด చేయండి", data=final_audio_bytes, file_name="telugu_gemini_voice.mp3", mime="audio/mp3")
+                    st.download_button(label="📥 ఆడియో డౌน์โหลด", data=final_audio_bytes, file_name="voice.mp3", mime="audio/mp3")
                     play_success_sound()
-                except Exception as e: 
-                    st.error(f"ఆడియో లోపం: {e}")
+                except Exception as e: st.error(f"లోపం: {e}")
 
 # ==========================================
-# TAB 3: GEMINI-POWERED IMAGE GENERATOR (FIXED STYLES)
+# TAB 3: SCENES DIVIDER
 # ==========================================
 with tab3:
-    st.write("### 🎨 ప్రతి తెలుగు లైన్ ని బట్టి ఇమేజెస్ జనరేట్ చేయండి")
+    st.write("### 🎬 3. కథను పేస్ట్ చేసి సీన్లుగా విడగొట్టండి")
+    input_story_to_split = st.text_area("📋 విజువల్ సీన్లుగా మార్చాల్సిన కథను ఇక్కడ పేస్ట్ (Paste) చేయండి:", height=200, key="t3_area")
     
-    edited_manual_scenes = st.text_area("🎬 ఇమేజ్ సీన్లు (లైన్ బై లైన్ తెలుగులో టైప్ చేయండి):", value=st.session_state.scenes_manual_text, height=150, key="manual_scenes_area")
-    st.session_state.scenes_manual_text = edited_manual_scenes
+    scenes_out = ""
+    if st.button("సీన్లుగా విడగొట్టు 🎬", key="t3_btn"):
+        if input_story_to_split.strip() == "":
+            st.warning("దయచేసి కథను పేస్ట్ చేయండి!")
+        elif model is None:
+            st.error("Gemini API Key సెట్ చేయబడలేదు!")
+        else:
+            with st.spinner("Gemini కథను సీన్లుగా విడగొడుతోంది..."):
+                try:
+                    response = model.generate_content(
+                        f"Read this Telugu story: '{input_story_to_split}'. Break it down into exactly 4 to 5 separate visual action lines/scenes in Telugu. Write each scene on a strict new line. Do not use numbers, headers, or bullet symbols."
+                    )
+                    scenes_out = response.text.strip() if response.text else ""
+                    st.success("సీన్లు సిద్ధమయ్యాయి! వీటిని కాపీ చేసి ట్యాబ్ 4 లో వాడుకోండి.")
+                    play_success_sound()
+                except Exception as e: st.error(f"లోపం: {e}")
+                
+    st.text_area("🎬 ఇక్కడ వచ్చిన సీన్లను కాపీ చేసుకోండి (లైన్ బై లైన్):", value=scenes_out, height=220, key="t3_out_area")
 
-    # ఇమేజ్ స్టైల్స్ ఎంపిక
-    selected_style = st.radio(
-        "ఇమేజ్ స్టైల్ ఎంచుకోండి (Image Style):",
-        ("2D Indian Cartoon Style (2D కార్టూన్)", "Real Life / Cinematic Style (నిజమైన ఫొటో లాగా)", "3D Disney Pixar Style (3D యానిమేషన్)"),
-        key="style_radio"
-    )
-
-    ratio_option = st.radio("వీడియో సైజ్ (Aspect Ratio):", ("16:9 (యూట్యూబ్)", "9:16 (షార్ట్స్)"), key="ratio_in")
+# ==========================================
+# TAB 4: IMAGE GENERATOR
+# ==========================================
+with tab4:
+    st.write("### 🎨 4. సీన్లను పేస్ట్ చేసి ఇమేజెస్ జనరేట్ చేయండి")
+    input_scenes_to_draw = st.text_area("📋 ట్యాబ్ 3 లో కాపీ చేసిన సీన్లను ఇక్కడ పేస్ట్ (Paste) చేయండి (లైన్ బై లైన్):", value="అడవిలో ఒక కాకి ఉంది.\nకాకికి దాహం వేసింది.", height=150, key="t4_area")
+    
+    selected_style = st.radio("స్టైల్ ఎంచుకోండి:", ("2D Indian Cartoon Style (2D కార్టూన్)", "Real Life / Cinematic Style (నిజమైన ఫొటో లాగా)", "3D Disney Pixar Style (3D యానిమేషన్)"), key="t4_style")
+    ratio_option = st.radio("వీడియో సైజ్:", ("16:9 (యూట్యూబ్)", "9:16 (షార్ట్స్)"), key="t4_ratio")
     img_width, img_height = (1024, 576) if "16:9" in ratio_option else (576, 1024)
 
-    # వైడ్ షాట్ మరియు స్పష్టమైన ఫీచర్స్ కోసం ఫ్రేమింగ్ రూల్స్
-    framing_rules = (
-        ", wide-angle established master shot framing, no cropped elements, show full body details from head to toe, "
-        "vivid colorful beautiful background, hyper-detailed sharp eyes, crisp clear facial features, 8k resolution"
-    )
+    framing_rules = ", wide-angle established master shot framing, full body details from head to toe, vivid colorful background, sharp clear facial features, 8k resolution"
 
-    # యూజర్ ఎంచుకున్న రేడియో బటన్ ని బట్టి స్టైల్ రూల్స్
-    if "2D" in selected_style:
-        style_prompt_addition = f"in traditional beautiful Indian 2D children's storybook cartoon illustration style, bright flat vector colors, clean black outlines{framing_rules}"
-    elif "Real" in selected_style:
-        style_prompt_addition = f"photorealistic real-life cinematic film style, highly authentic human lighting, real world environments, professional photography{framing_rules}"
-    else:
-        style_prompt_addition = f"in high-end 3D animation style, cute Disney Pixar character design, smooth rendered 3D textures, magical cinematic lighting{framing_rules}"
+    if "2D" in selected_style: style_prompt_addition = f"in traditional beautiful Indian 2D children's storybook cartoon illustration style, bright flat vector colors, clean black outlines{framing_rules}"
+    elif "Real" in selected_style: style_prompt_addition = f"photorealistic real-life cinematic film style, highly authentic human lighting, real world environments{framing_rules}"
+    else: style_prompt_addition = f"in high-end 3D animation style, cute Disney Pixar character design, smooth rendered 3D textures{framing_rules}"
 
-    if st.button("సీన్ ఇమేజెస్ జనరేట్ చేయి 🎨", key="image_gen_trigger"):
-        if st.session_state.scenes_manual_text.strip() == "":
-            st.warning("దయచేసి బాక్సులో కనీసం ఒక లైన్ సీన్ అయినా రాయండి!")
+    if st.button("బొమ్మలను తయారుచేయి 🎨", key="t4_btn"):
+        if input_scenes_to_draw.strip() == "":
+            st.warning("దయచేసి సీన్లను లైన్ బై లైన్ రాయండి!")
         elif model is None:
-            st.error("Gemini API Key సెట్ చేయబడలేదు! దయచేసి Streamlit Secrets లో GEMINI_API_KEY యాడ్ చేయండి.")
+            st.error("Gemini API Key సెట్ చేయబడలేదు!")
         else:
-            lines = [line.strip() for line in st.session_state.scenes_manual_text.split('\n') if line.strip()]
-            st.success(f"మొత్తం {len(lines)} లైన్లకు ఇమేజెస్ సిద్ధమవుతున్నాయి...")
+            lines = [line.strip() for line in input_scenes_to_draw.split('\n') if line.strip()]
+            st.success(f"మొత్తం {len(lines)} చిత్రాలు సిద్ధమవుతున్నాయి...")
             
             for i, t_scene in enumerate(lines):
                 st.write(f"**సీన్ {i+1}:** {t_scene}")
-                with st.spinner(f"Gemini మరియు Flux కలిసి సీన్ {i+1} ఫోటోని తయారుచేస్తున్నాయి..."):
+                with st.spinner(f"ఫోటో {i+1} తయారవుతోంది..."):
                     try:
-                        # జెమినికి తెలుగు ప్రాంప్ట్ పంపి దాన్ని పర్ఫెక్ట్ ఇంగ్లీష్ ఇమేజ్ ప్రాంప్ట్ గా మారుస్తున్నాం
-                        gemini_prompt = (
-                            f"You are an expert AI Image prompt generator. Convert this Telugu story scene description "
-                            f"into a highly detailed, descriptive, visual English prompt for image generation. "
-                            f"The output must strictly be styled in: {style_prompt_addition}. "
-                            f"Do not write any introductory text like 'Here is the prompt', give ONLY the final detailed English prompt text."
-                            f"Telugu Scene Text: '{t_scene}'"
-                        )
-                        
+                        gemini_prompt = f"You are an expert Image prompt creator. Convert this Telugu scene into a highly descriptive English image prompt. Art style must strictly be: {style_prompt_addition}. Give ONLY raw prompt text. Telugu: '{t_scene}'"
                         response = model.generate_content(gemini_prompt)
                         english_prompt = response.text.strip() if response.text else f"{t_scene}, {style_prompt_addition}"
                         
-                        # ఇమేజ్ జనరేషన్ (Flux API ద్వారా)
                         encoded_scene = requests.utils.quote(english_prompt)
                         image_url = f"https://image.pollinations.ai/p/{encoded_scene}?width={img_width}&height={img_height}&nologo=true&model=flux"
                         
                         img_response = requests.get(image_url, timeout=40)
                         if img_response.status_code == 200:
-                            st.image(img_response.content, caption=f"Scene {i+1} Output ({selected_style})", use_container_width=True)
-                            st.download_button(
-                                label=f"📥 సీన్ {i+1} ఇమేజ్ డౌน์โหลด చేయండి", data=io.BytesIO(img_response.content),
-                                file_name=f"scene_{i+1}.jpg", mime="image/jpeg", key=f"dl_gemini_img_{i}"
-                            )
+                            st.image(img_response.content, caption=f"Scene {i+1} - {selected_style}", use_container_width=True)
+                            st.download_button(label=f"📥 ఫోటో {i+1} డౌน์โหลด", data=io.BytesIO(img_response.content), file_name=f"scene_{i+1}.jpg", mime="image/jpeg", key=f"dl_{i}")
                             st.markdown("---")
-                        else:
-                            st.error(f"సీన్ {i+1} ఇమేజ్ లోడ్ అవ్వలేదు.")
-                    except Exception as e:
-                        st.error(f"తప్పు జరిగింది: {e}")
+                        else: st.error(f"సీన్ {i+1} లోడ్ అవ్వలేదు.")
+                    except Exception as e: st.error(f"లోపం: {e}")
             play_success_sound()
