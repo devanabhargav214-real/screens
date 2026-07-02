@@ -1,4 +1,4 @@
-import asyncio
+hiimport asyncio
 import re
 import streamlit as st
 import edge_tts
@@ -118,6 +118,7 @@ with tab2:
                     st.error(f"లోపం: {e}")
 
 # --- ట్యాబ్ 3: HD ఇమేజ్ జనరేటర్ ---
+# --- ట్యాబ్ 3: HD ఇమేజ్ జనరేటర్ (NEWSPAPER & TELUGU CULTURE UPDATE) ---
 with tab3:
     st.write("### 🎨 తెలుగు సీన్స్ బట్టి హై-క్వాలిటీ HD ఇమేజ్ జనరేటర్")
     
@@ -135,7 +136,11 @@ with tab3:
         st.write("#### 🎭 ఇమేజ్ స్టైల్ ఎంచుకోండి:")
         style_option = st.radio(
             "ఫోటో రకం (Image Style):",
-            ("2D కార్టూన్ స్టైల్ (Pure 2D Cartoon/Anime Style for Kids)", "నార్మల్ రియలిస్టిక్ స్టైల్ (Photorealistic/Cinematic)"),
+            (
+                "తెలుగు 2D యానిమేషన్ (Telugu Animated 2D Indian Culture Style)", 
+                "న్యూస్ పేపర్ స్టైల్ (Vintage Newspaper Print/Sketch Style)",
+                "నార్మల్ రియలిస్టిక్ స్టైల్ (Photorealistic/Cinematic)"
+            ),
             index=0
         )
     
@@ -147,16 +152,20 @@ with tab3:
         img_width = 576
         img_height = 1024
 
-    # జూమ్ అవ్వకుండా, క్యారెక్టర్లు, వస్తువులు, బ్యాక్‌గ్రౌండ్ పర్ఫెక్ట్‌గా కనిపించేలా ప్రాంప్ట్ రూల్స్ పెట్టాం
-    if "2D కార్టూన్" in style_option:
-        style_prompt_addition = "in a beautiful pure 2D cartoon illustration style, traditional anime flat colors, clear outlines, cute studio ghibli style, full wide shot, NO 3D, NO realism. Show full character bodies, clear environment background, and all scene properties perfectly without zooming in, distinct details."
+    # స్టైల్స్ మరియు ఫేస్ క్లారిటీ కాన్ఫిగరేషన్
+    face_and_framing = ", full wide view shot, showing full body and surrounding environment clearly without zooming in, ultra-clear detailed faces, perfect sharp facial features, well-defined eyes and expressions, complete properties"
+
+    if "తెలుగు 2D యానిమేషన్" in style_option:
+        style_prompt_addition = f"in a beautiful traditional Telugu animated 2D Indian culture style, authentic South Indian clothing like saree and dhoti, beautiful cultural background, vibrant flat colors, clean neat outlines, cartoon illustration{face_and_framing}"
+    elif "న్యూస్ పేపర్ స్టైల్" in style_option:
+        style_prompt_addition = f"in a vintage old Indian newspaper print style, halftone dots pattern, monochrome black and white ink sketch, retro newspaper archive illustration, highly detailed lines{face_and_framing}"
     else:
-        style_prompt_addition = "photorealistic, 8k resolution, cinematic lighting, highly detailed masterpiece, real-life look, full wide view shot, showing full body and complete surrounding environment, capturing all properties and background elements clearly without extreme close-ups or zooming."
+        style_prompt_addition = f"photorealistic, 8k resolution, cinematic lighting, highly detailed masterpiece, real-life look{face_and_framing}"
 
     st.write("#### 📝 మీ తెలుగు సీన్స్ ఇక్కడ ఇవ్వండి (లైన్ బై లైన్):")
     telugu_script = st.text_area(
         "ఒక్కో లైన్‌లో ఒక్కో సీన్ ఇవ్వండి:",
-        placeholder="ఒక అడవిలో ఒక పెద్ద సింహం పడుకుని ఉంది\nఒక చిన్న ఎలుక సింహం మీద ఆడుకుంటోంది",
+        placeholder="ఒక పల్లెటూర్లో ఒక తెలుగు రైతు పొలంలో పని చేస్తున్నాడు\nఒక ముసలి తాత అరుగు మీద కూర్చుని పేపర్ చదువుతున్నాడు",
         height=200,
         key="telugu_script"
     )
@@ -166,7 +175,7 @@ with tab3:
             st.warning("దయచేసి కనీసం ఒక తెలుగు సీన్ అయినా టైప్ చేయండి!")
         else:
             telugu_scenes = [line.strip() for line in telugu_script.split('\n') if line.strip()]
-            st.success(f"మొత్తం {len(telugu_scenes)} సీన్లు కనుగొనబడ్డాయి. పర్ఫెక్ట్ ఇమేజెస్ తయారవుతున్నాయి...")
+            st.success(f"మొత్తం {len(telugu_scenes)} సీన్లు కనుగొనబడ్డాయి. అద్భుతమైన ఇమేజెస్ తయారవుతున్నాయి...")
             
             for i, t_scene in enumerate(telugu_scenes):
                 st.write(f"**సీన్ {i+1} (తెలుగు):** {t_scene}")
@@ -175,8 +184,7 @@ with tab3:
                     try:
                         translate_prompt = (
                             f"Convert this Telugu scene into a highly detailed English image generation prompt. "
-                            f"The style and framing of the image must be: {style_prompt_addition}. "
-                            f"Ensure the camera is far enough to show the full character, the background environment, and all properties clearly. "
+                            f"The output image must be strictly {style_prompt_addition}. "
                             f"Give me only the detailed English description, no other text. "
                             f"Telugu text: '{t_scene}'"
                         )
@@ -191,7 +199,7 @@ with tab3:
                             
                             img_response = requests.get(image_url)
                             if img_response.status_code == 200:
-                                st.image(img_response.content, caption=f"HD Scene {i+1} Output ({img_width}x{img_height})", use_container_width=True)
+                                st.image(img_response.content, caption=f"HD Scene {i+1} Output", use_container_width=True)
                                 st.download_button(
                                     label=f"📥 సీన్ {i+1} HD ఇమేజ్ డౌน์โหลด",
                                     data=img_response.content,
@@ -203,3 +211,4 @@ with tab3:
                             else: st.error(f"సీన్ {i+1} ఇమేజ్ లోడ్ అవ్వలేదు.")
                         else: st.error(f"తెలుగు లైన్‌ను అర్థం చేసుకోవడంలో లోపం వచ్చింది.")
                     except Exception as e: st.error(f"తప్పు జరిగింది: {e}")
+                        
