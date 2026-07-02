@@ -3,21 +3,23 @@ import re
 import streamlit as st
 import edge_tts
 import requests
-import io
 
 # వెబ్‌సైట్ కాన్ఫిగరేషన్
-st.set_page_config(page_title="Telugu AI Studio Pro", page_icon="🎬", layout="wide")
+st.set_page_config(page_title="Telugu AI Audio Studio", page_icon="🎙️", layout="wide")
 
 # ==========================================
-# SIMPLE WHITE & BLUE INTERFACE STYLING
+# SIMPLE HIGH-CONTRAST WHITE & BLUE STYLING
 # ==========================================
 st.markdown("""
     <style>
+    /* మెయిన్ బ్యాbackground ఎల్లప్పుడూ ప్యూర్ వైట్ */
     .stApp {
         background-color: #ffffff !important;
     }
+    
+    /* క్లాసిక్ బ్లూ మెయిన్ టైటిల్ */
     .main-heading {
-        font-size: 28px;
+        font-size: 26px;
         color: #ffffff !important;
         font-weight: bold;
         text-align: center;
@@ -27,6 +29,7 @@ st.markdown("""
         margin-bottom: 25px;
     }
     
+    /* ట్యాబ్స్ డిజైన్ */
     button[data-baseweb="tab"] {
         font-size: 16px !important;
         font-weight: bold !important;
@@ -38,6 +41,7 @@ st.markdown("""
         background-color: #eff6ff !important;
     }
 
+    /* ప్రైమరీ బ్లూ బటన్స్ */
     div.stButton > button {
         background-color: #1e3a8a !important;
         color: #ffffff !important;
@@ -45,7 +49,7 @@ st.markdown("""
         font-weight: bold !important;
         border-radius: 6px !important;
         border: none !important;
-        padding: 8px 20px !important;
+        padding: 10px 20px !important;
         width: 100%;
         margin-bottom: 10px;
         transition: background-color 0.3s ease;
@@ -53,6 +57,8 @@ st.markdown("""
     div.stButton > button:hover {
         background-color: #2563eb !important;
     }
+    
+    /* గ్రీన్ డౌน์โหลด బటన్ */
     div.stDownloadButton > button {
         background-color: #10b981 !important;
         color: #ffffff !important;
@@ -65,41 +71,52 @@ st.markdown("""
     div.stDownloadButton > button:hover {
         background-color: #059669 !important;
     }
-    p, label, span, div, .stRadio, p li {
-        color: #1f2937 !important;
+
+    /* డార్క్ మోడ్‌లో కూడా అక్షరాలు నల్లగా స్పష్టంగా కనిపించడానికి ఫోర్స్ రూల్ */
+    p, label, span, div, p li, .stSelectbox label {
+        color: #000000 !important;
         font-weight: bold !important;
+        font-size: 15px !important;
+    }
+    
+    /* టెక్స్ట్ ఏరియా లోపలి ఫాంట్ స్టైలింగ్ */
+    textarea {
+        color: #000000 !important;
+        font-weight: normal !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
+# టాస్క్ పూర్తి కాగానే ప్లే అవ్వడానికి సక్సెస్ బెల్ సౌండ్
 def play_success_sound():
     sound_html = """
     <audio autoplay><source src="https://assets.mixkit.co/active_storage/sfx/2019/2019-84.wav" type="audio/wav"></audio>
     """
     st.components.v1.html(sound_html, height=0, width=0)
 
+# స్లైడర్ మార్చినప్పుడు వైబ్రేషన్ రావడానికి జావాస్క్రిప్ట్
 def trigger_vibration():
     vibrate_html = """
-    <script>if (window.navigator && window.navigator.vibrate) { window.navigator.vibrate(30); }</script>
+    <script>if (window.navigator && window.navigator.vibrate) { window.navigator.vibrate(25); }</script>
     """
     st.components.v1.html(vibrate_html, height=0, width=0)
 
-st.markdown('<div class="main-heading">🎬 తెలుగు AI ఆటోమేటిక్ వీడియో స్టూడియో</div>', unsafe_allow_html=True)
+# ప్రధాన టైటిల్
+st.markdown('<div class="main-heading">🎬 తెలుగు AI ఆటోమేటిక్ స్టోరీ & వాయిస్ స్టూడియో</div>', unsafe_allow_html=True)
 
+# సెషన్ స్టేట్ డేటా స్టోరేజ్
 if "story_text" not in st.session_state:
     st.session_state.story_text = ""
-if "scenes_manual_text" not in st.session_state:
-    st.session_state.scenes_manual_text = "అడవిలో ఒక కాకి ఉంది.\nకాకికి చాలా దాహం వేసింది.\nఅక్కడ ఒక कुండ కనిపించింది.\nకుండలో నీళ్లు చాలా కిందకి ఉన్నాయి."
 
-# CREATE INDIVIDUAL TABS
-tab1, tab2, tab3 = st.tabs(["📖 1. Story Generator", "🎙️ 2. Voice Over", "🎨 3. Image Generator"])
+# ఇరవై ఇండివిడ్యువల్ ట్యాబ్స్ (కథ మరియు వాయిస్ ఓవర్)
+tab1, tab2 = st.tabs(["📖 1. Story Generator", "🎙️ 2. Voice Over"])
 
 # ==========================================
-# TAB 1: STORY GENERATOR
+# TAB 1: STORY GENERATOR (HIGH SPEED)
 # ==========================================
 with tab1:
-    st.subheader("📝 కథను సిద్ధం చేయండి")
-    topic = st.text_input("మీ కథ టాపిక్ ఇక్కడ టైప్ చేయండి:", placeholder="ఉదాహరణకు: కాకి మరియు కుండ కథ...")
+    st.write("### 📝 మీ టాపిక్ నుండి కథను జనరేట్ చేయండి")
+    topic = st.text_input("మీ కథ టాపిక్ ఇక్కడ టైప్ చేయండి:", placeholder="ఉదాహరణకు: పేద రైతు మరియు బంగారు హంస కథ...")
 
     if st.button("కథ జనరేట్ చేయి 📖", key="gen_story_tab"):
         if topic.strip() == "":
@@ -107,6 +124,7 @@ with tab1:
         else:
             with st.spinner("AI కథను వేగంగా తయారు చేస్తోంది..."):
                 try:
+                    # సర్వర్ బిజీ ఎర్రర్ రాకుండా ఉండటానికి 'searchgpt' మోడల్ ని లింక్ చేసాం
                     prompt = f"Write a beautiful short story in clear Telugu language about the topic: '{topic}'."
                     encoded_prompt = requests.utils.quote(prompt)
                     url = f"https://text.pollinations.ai/{encoded_prompt}?model=searchgpt&json=false"
@@ -114,25 +132,27 @@ with tab1:
                     
                     if response.status_code == 200 and response.text.strip() != "":
                         st.session_state.story_text = response.text.strip()
-                        st.success("కథ సిద్ధమైంది!")
+                        st.success("కథ విజయవంతంగా సిద్ధమైంది! దీన్ని పక్కన ఉన్న వాయిస్ ఓవర్ ట్యాబ్‌లో వాడుకోవచ్చు.")
                         play_success_sound()
                     else:
-                        st.error("సర్వర్ బిజీగా ఉంది. దయచేసి మరోసారి ట్రై చేయండి.")
+                        st.error("సర్వర్ బిజీగా ఉంది. దయచేసి మరోసారి చిన్న టాపిక్ తో ట్రై చేయండి.")
                 except Exception as e: 
                     st.error(f"కనెక్షన్ లోపం: {e}")
 
-    edited_story = st.text_area("📖 ప్రస్తుత కథ (ఇక్కడ మీరు మార్పులు చేసుకోవచ్చు):", value=st.session_state.story_text, height=250, key="story_area")
+    # జనరేట్ అయిన కథను ఇక్కడ చూపిస్తాం (యూజర్ కావాలంటే ఎడిట్ చేసుకోవచ్చు)
+    edited_story = st.text_area("📖 ప్రస్తుత కథ (వాయిస్ కోసం):", value=st.session_state.story_text, height=300, key="story_area")
     st.session_state.story_text = edited_story
 
 # ==========================================
 # TAB 2: VOICE OVER
 # ==========================================
 with tab2:
-    st.subheader("🎙️ కథను ఆడియో లాగా మార్చండి")
+    st.write("### 🎙️ కథను నాచురల్ ఆడియో లాగా మార్చండి")
     
     voice_option = st.selectbox("వాయిస్ మోడల్ ఎంచుకోండి (Voice):", ("మగవారి వాయిస్ (Mohan)", "ఆడవారి వాయిస్ (Shruti)"), key="voice_select")
     voice = "te-IN-MohanNeural" if "Mohan" in voice_option else "te-IN-ShrutiNeural"
 
+    st.write("#### 🎛️ వాయిస్ సెట్టింగ్స్ (మార్చుతున్నప్పుడు మొబైల్ వైబ్రేట్ అవుతుంది):")
     col1, col2, col3 = st.columns(3)
     with col1:
         speed_slider = st.slider("వాయిస్ వేగం (Speed):", -50, 50, -4, 2, format="%d%%", key="speed_v")
@@ -147,6 +167,7 @@ with tab2:
         voice_pitch = f"{'' if pitch_slider < 0 else '+'}{pitch_slider}Hz"
         if pitch_slider: trigger_vibration()
 
+    # పెద్ద టెక్స్ట్‌ని విడగొట్టే ఫంక్షన్ (ఎర్రర్స్ రాకుండా ఉండటానికి)
     def split_text(text, max_chars=1000):
         sentences = re.split(r'(?<=[.!?])\s+', text)
         chunks = []
@@ -172,9 +193,9 @@ with tab2:
 
     if st.button("కథను ఆడియోగా మార్చు 🚀", key="audio_gen_trigger"):
         if st.session_state.story_text.strip() == "":
-            st.warning("ట్యాబ్ 1 లో కథ లేదు! దయచేసి ఇక్కడ డైరెక్ట్ గా కథను టైప్ చేయండి.")
+            st.warning("మొదటి ట్యాబ్‌లో కథ లేదు! దయచేసి కథను జనరేట్ చేయండి లేదా ఇక్కడే నేరుగా టైప్ చేయండి.")
         else:
-            with st.spinner("ఆడియో రికార్డ్ అవుతోంది..."):
+            with st.spinner("స్పష్టమైన ఆడియో రికార్డ్ అవుతోంది..."):
                 try:
                     loop = asyncio.new_event_loop()
                     asyncio.set_event_loop(loop)
@@ -182,85 +203,7 @@ with tab2:
                         generate_audio(st.session_state.story_text, voice, voice_speed, voice_volume, voice_pitch)
                     )
                     st.audio(final_audio_bytes, format="audio/mp3")
-                    st.download_button(label="📥 కథ ఆడియో ఫైల్ డౌน์โหลด చేయండి", data=final_audio_bytes, file_name="story_voice.mp3", mime="audio/mp3")
+                    st.download_button(label="📥 కథ ఆడియో ఫైల్ డౌน์โหลด చేయండి", data=final_audio_bytes, file_name="telugu_story_voice.mp3", mime="audio/mp3")
                     play_success_sound()
                 except Exception as e: 
                     st.error(f"లోపం: {e}")
-
-# ==========================================
-# TAB 3: IMAGE GENERATOR (WITH FIXED AUTO-FALLBACK)
-# ==========================================
-with tab3:
-    st.subheader("🎨 ఇమేజెస్ జనరేట్ చేయండి")
-    
-    edited_manual_scenes = st.text_area("🎬 ఇమేజ్ సీన్లు (లైన్ బై లైన్ టైప్ చేయండి):", value=st.session_state.scenes_manual_text, height=180, key="manual_scenes_area")
-    st.session_state.scenes_manual_text = edited_manual_scenes
-
-    user_style_input = st.text_input("ఇమేజ్ స్టైల్ (ఉదా: cartoon, cinematic, anime):", placeholder="ఏమీ ఇవ్వకపోతే డిఫాల్ట్ 2D ఇండియన్ కార్టూన్ వస్తుంది...", key="style_in")
-
-    ratio_option = st.radio("వీడియో సైజ్ (Aspect Ratio):", ("16:9 (యూట్యూబ్)", "9:16 (షార్ట్స్)"), key="ratio_in")
-    img_width, img_height = (1024, 576) if "16:9" in ratio_option else (576, 1024)
-
-    style_keyword = user_style_input.lower().strip()
-    framing_rules = (
-        ", established wide shot framing, no close-ups, show entire bodies and full characters from head to toe, "
-        "completely visible clear background environment, crisp sharp facial features, highly detailed distinct eyes"
-    )
-
-    if "anime" in style_keyword or "japanese" in style_keyword:
-        style_prompt_addition = f"in beautiful vibrant Japanese anime studio Ghibli cartoon style, detailed backgrounds{framing_rules}"
-    elif "cartoon" in style_keyword:
-        style_prompt_addition = f"in an amazing 2D cartoon illustration style, bright flat colors, clear outlines{framing_rules}"
-    elif "cinematic" in style_keyword:
-        style_prompt_addition = f"8k resolution, photorealistic cinematic film style, dynamic real-life lighting{framing_rules}"
-    else:
-        style_prompt_addition = f"in beautiful traditional Indian 2D cartoon book illustration style, South Indian character design, clean precise outlines, solid rich colors{framing_rules}"
-
-    if st.button("సీన్ ఇమేజెస్ జనరేట్ చేయి 🎨", key="image_gen_trigger"):
-        if st.session_state.scenes_manual_text.strip() == "":
-            st.warning("దయచేసి బాక్సులో కనీసం ఒక లైన్ సీన్ అయినా రాయండి!")
-        else:
-            lines = [line.strip() for line in st.session_state.scenes_manual_text.split('\n') if line.strip()]
-            st.success(f"మొత్తం {len(lines)} లైన్లకు ఇమేజెస్ సిద్ధమవుతున్నాయి...")
-            
-            for i, t_scene in enumerate(lines):
-                st.write(f"**సీన్ {i+1}:** {t_scene}")
-                with st.spinner(f"సీన్ {i+1} ఫోటో తయారవుతోంది..."):
-                    try:
-                        # 1. ట్రాన్స్‌లేషన్ సర్వర్‌ని హై-స్పీడ్ మోడల్ తో పిలుస్తున్నాం
-                        translate_prompt = (
-                            f"Convert this Telugu story action into a highly descriptive English image prompt. "
-                            f"The output visual asset must strictly look like {style_prompt_addition}. "
-                            f"Provide only the detailed English text scene layout, nothing else. "
-                            f"Telugu text: '{t_scene}'"
-                        )
-                        encoded_t_prompt = requests.utils.quote(translate_prompt)
-                        url = f"https://text.pollinations.ai/{encoded_t_prompt}?model=searchgpt&json=false"
-                        translate_response = requests.get(url)
-                        
-                        # డిఫాల్ట్ ప్రాంప్ట్ కింద మొదట తెలుగు లైన్ + స్టైల్ సెట్ చేస్తున్నాం (సర్వర్ బిజీ అయితే వాడటానికి)
-                        final_prompt = f"{t_scene}, {style_prompt_addition}"
-                        
-                        # ఒకవేళ ట్రాన్స్‌లేషన్ సక్సెస్ అయితే ఇంగ్లీష్ ప్రాంప్ట్ వాడుతుంది
-                        if translate_response.status_code == 200 and "సర్వర్ బిజీ" not in translate_response.text:
-                            text_out = translate_response.text.strip()
-                            if text_out:
-                                final_prompt = text_out
-                        
-                        # 2. ఇమేజ్ జనరేషన్ ప్రక్రియ
-                        encoded_scene = requests.utils.quote(final_prompt)
-                        image_url = f"https://image.pollinations.ai/p/{encoded_scene}?width={img_width}&height={img_height}&nologo=true&model=flux"
-                        
-                        img_response = requests.get(image_url)
-                        if img_response.status_code == 200:
-                            st.image(img_response.content, caption=f"Scene {i+1} Output", use_container_width=True)
-                            st.download_button(
-                                label=f"📥 సీన్ {i+1} ఇమేజ్ డౌน์โหลด చేయండి", data=io.BytesIO(img_response.content),
-                                file_name=f"scene_{i+1}.jpg", mime="image/jpeg", key=f"dl_manual_img_{i}"
-                            )
-                            st.markdown("---")
-                        else:
-                            st.error(f"సీన్ {i+1} ఇమేజ్ లోడ్ అవ్వలేదు.")
-                    except Exception as e:
-                        st.error(f"తప్పు జరిగింది: {e}")
-            play_success_sound()
