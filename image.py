@@ -47,7 +47,7 @@ st.markdown("""
 try:
     gemini_key = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=gemini_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 except Exception:
     model = None
 
@@ -57,7 +57,7 @@ def play_success_sound():
 def trigger_vibration():
     st.components.v1.html("""<script>if (window.navigator && window.navigator.vibrate) { window.navigator.vibrate(25); }</script>""", height=0, width=0)
 
-st.markdown('<div class="main-heading">🎬 Gemini తెలుగు AI కంప్లీట్ వీడియో స్టూడియో</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-heading">🎬  తెలుగు AI కంప్లీట్  స్టూడియో</div>', unsafe_allow_html=True)
 
 # సెషన్ స్టేట్ హోల్డర్స్
 if "generated_story_holder" not in st.session_state: 
