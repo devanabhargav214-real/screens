@@ -38,7 +38,7 @@ st.markdown("""
 try:
     gemini_key = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=gemini_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-2.5-flash')
 except Exception:
     model = None
 
