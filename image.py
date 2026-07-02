@@ -9,19 +9,19 @@ import io
 st.set_page_config(page_title="Telugu AI Studio Pro", page_icon="🎬", layout="wide")
 
 # ==========================================
-# CLEAR YELLOW & BLACK CARTOON UI STYLING
+# FIXED HIGH-CONTRAST BLACK FONT CARTOON UI
 # ==========================================
 st.markdown("""
     <style>
-    /* మెయిన్ బ్యాbackground */
+    /* మెయిన్ బ్యాక్‌గ్రౌండ్ ఎల్లప్పుడూ లైట్ కలర్ లో ఉండాలి */
     .stApp {
-        background-color: #fafafa;
+        background-color: #ffffff !important;
     }
     
     /* మెయిన్ టైటిల్ */
     .main-heading {
-        font-size: 32px;
-        color: #000000;
+        font-size: 30px;
+        color: #000000 !important;
         font-weight: bold;
         text-align: center;
         background-color: #ffd166;
@@ -32,7 +32,7 @@ st.markdown("""
         box-shadow: 4px 4px 0px #000000;
     }
     
-    /* ప్రతి టాస్క్ బాక్స్ హెడర్ (Yellow background, Black Text) */
+    /* టాస్క్ హెడర్స్ */
     .task-header {
         background-color: #ffd166;
         color: #000000 !important;
@@ -41,12 +41,12 @@ st.markdown("""
         padding: 10px 15px;
         border: 3px solid #000000;
         border-radius: 8px;
-        margin-top: 20px;
+        margin-top: 25px;
         margin-bottom: 15px;
         box-shadow: 3px 3px 0px #000000;
     }
 
-    /* బటన్స్ డిజైన్ */
+    /* బటన్స్ */
     div.stButton > button {
         background-color: #ffd166 !important;
         color: #000000 !important;
@@ -63,7 +63,7 @@ st.markdown("""
         background-color: #ffc333 !important;
     }
     
-    /* డౌన్‌లోడ్ బటన్ డిజైన్ */
+    /* డౌన్‌లోడ్ బటన్ */
     div.stDownloadButton > button {
         background-color: #06d6a0 !important;
         color: #000000 !important;
@@ -74,15 +74,18 @@ st.markdown("""
         box-shadow: 3px 3px 0px #000000 !important;
         width: 100%;
     }
-    div.stDownloadButton > button:hover {
-        background-color: #04bfa4 !important;
-    }
 
-    /* టెక్స్ట్ లేబుల్స్ క్లారిటీ */
-    label {
+    /* రేడియో బటన్స్, లేబుల్స్ మరియు యాప్ లోని ప్రతి టెక్స్ట్ ఫోర్స్ బ్లాక్ చేయడం */
+    p, label, span, div, .stRadio, p li {
         color: #000000 !important;
         font-weight: bold !important;
-        font-size: 15px !important;
+    }
+    
+    /* రేడియో బటన్ల పక్కన ఉండే టెక్స్ట్ క్లారిటీ */
+    div[data-testid="stMarkdownContainer"] p {
+        color: #000000 !important;
+        font-size: 16px !important;
+        font-weight: bold !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -125,7 +128,7 @@ with col_btn2:
         if st.session_state.story_text.strip() == "":
             st.warning("ముందుగా ఎడమవైపు బటన్ నొక్కి కథను జనరేట్ చేయండి!")
         else:
-            with st.spinner("సీన్లను వేరు చేస్తోంది..."):
+            with st.spinner("シーన్లను వేరు చేస్తోంది..."):
                 try:
                     prompt = (
                         f"Read this Telugu story: '{st.session_state.story_text}'. "
@@ -217,7 +220,7 @@ col_ratio, col_style = st.columns(2)
 with col_ratio:
     ratio_option = st.radio("వీడియో సైజ్ (Aspect Ratio):", ("16:9 (యూట్యూబ్ నార్మల్)", "9:16 (షార్ట్స్/రీల్స్)"))
 with col_style:
-    style_option = st.radio("ఇమేజ్ లుక్ (Style):", ("తెలుగు 2D కామిక్ స్ట్రిప్ (Cartoon)", "సినిమాటిక్ రియలిస్టిక్ (Real Photo)"))
+    style_option = st.radio("ఇమేజ్ లుక్ (Style):", ("2D కామిక్ స్ట్రిప్ (Cartoon)", "సినిమాటిక్ రియలిస్టిక్ (Real Photo)"))
 
 img_width, img_height = (1024, 576) if "16:9" in ratio_option else (576, 1024)
 
