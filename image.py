@@ -47,7 +47,7 @@ st.markdown("""
 try:
     gemini_key = st.secrets["GEMINI_API_KEY"]
     genai.configure(api_key=gemini_key)
-    model = genai.GenerativeModel('gemini-2.5-flash')
+    model = genai.GenerativeModel('gemini-1.5-flash')
 except Exception:
     model = None
 
@@ -59,30 +59,38 @@ def trigger_vibration():
 
 st.markdown('<div class="main-heading">🎬 Gemini తెలుగు AI కంప్లీట్ వీడియో స్టూడియో</div>', unsafe_allow_html=True)
 
-if "generated_story_holder" not in st.session_state: st.session_state.generated_story_holder = ""
-if "generated_scenes_holder" not in st.session_state: st.session_state.generated_scenes_holder = ""
+# సెషన్ స్టేట్ హోల్డర్స్
+if "generated_story_holder" not in st.session_state: 
+    st.session_state.generated_story_holder = ""
+if "generated_scenes_holder" not in st.session_state: 
+    st.session_state.generated_scenes_holder = ""
 
 tab1, tab2, tab3, tab4 = st.tabs(["📖 1. Story Generator", "🎙️ 2. Voice Over", "🎬 3. Scenes Divider", "🎨 4. Image Generator"])
 
 # ==========================================
-# TAB 1: STORY GENERATOR (DYNAMIC LOADING TOPIC)
+# TAB 1: STORY GENERATOR (100% DISP FIX)
 # ==========================================
 with tab1:
-    st.write("### 📝 1. కథను జనరేట్ చేయండి")
+    st.write("### 📝 1.  కథను జనరేట్ చేయండి")
     user_topic = st.text_input("మీ కథ టాపిక్ ఇవ్వండి:", placeholder="ఉదాహరణకు: తెనాలి రామకృష్ణ కథలు...", key="t1_topic")
+    
     if st.button("కథ జనరేట్ చేయి ✨", key="t1_btn"):
-        if user_topic.strip() == "": st.warning("దయచేసి టాపిక్ ఇవ్వండి!")
-        elif model is None: st.error("Gemini API Key సెట్ చేయబడలేదు!")
+        if user_topic.strip() == "": 
+            st.warning("దయచేసి టాపిక్ ఇవ్వండి!")
+        elif model is None: 
+            st.error("Gemini API Key సెట్ చేయబడలేదు!")
         else:
-            # ఇక్కడ మీరు సెర్చ్ చేసిన టాపిక్ పేరు డైనమిక్‌గా డిస్‌ప్లే అవుతుంది
             with st.spinner(f"మీరు సెర్చ్ చేసిన '{user_topic}' జనరేట్ అవుతుంది..."):
                 try:
-                    response = model.generate_content(f"Write a beautiful detailed short story in pure Telugu language about: '{user_topic}'.")
+                    response = model.generate_content(f"Write a beautiful detailed short story in pure Telugu language about the topic: '{user_topic}'.")
                     if response.text:
+                        # డైరెక్ట్ గా సెషన్ స్టేట్ వాల్యూ ని అప్‌డేట్ చేసి స్క్రీన్‌ని ఫోర్స్ అప్‌డేట్ చేస్తున్నాం
                         st.session_state.generated_story_holder = response.text.strip()
                         play_success_sound()
-                        st.rerun()
-                except Exception as e: st.error(f"AI లోపం: {e}")
+                except Exception as e: 
+                    st.error(f"AI లోపం: {e}")
+                    
+    # టెక్స్ట్ ఏరియా బాక్స్‌ని నేరుగా సెషన్ స్టేట్ కీ తో బైండ్ చేసాం
     st.text_area("📋 ఇక్కడ వచ్చిన కథను కాపీ చేసుకోండి:", value=st.session_state.generated_story_holder, height=300, key="t1_area")
 
 # ==========================================
@@ -143,23 +151,27 @@ with tab2:
                 except Exception as e: st.error(f"లోపం: {e}")
 
 # ==========================================
-# TAB 3: SCENES DIVIDER
+# TAB 3: SCENES DIVIDER (100% DISP FIX)
 # ==========================================
 with tab3:
     st.write("### 🎬 3. కథను పేస్ట్ చేసి సీన్లుగా విడగొట్టండి")
     input_story_to_split = st.text_area("📋 విజువల్ సీన్లుగా మార్చాల్సిన కథను ఇక్కడ పేస్ట్ చేయండి:", height=200, key="t3_area")
+    
     if st.button("సీన్లుగా విడగొట్టు 🎬", key="t3_btn"):
-        if input_story_to_split.strip() == "": st.warning("దయచేసి కథను పేస్ట్ చేయండి!")
-        elif model is None: st.error("Gemini API Key సెట్ చేయబడలేదు!")
+        if input_story_to_split.strip() == "": 
+            st.warning("దయచేసి కథను పేస్ట్ చేయండి!")
+        elif model is None: 
+            st.error("Gemini API Key సెట్ చేయబడలేదు!")
         else:
             with st.spinner("Gemini కథను సీన్లుగా విడగొడుతోంది..."):
                 try:
-                    response = model.generate_content(f"Read this Telugu story: '{input_story_to_split}'. Break it down into exactly 4 to 5 separate visual scenes in Telugu. Write each scene on a strict new line. No numbers or bullets.")
+                    response = model.generate_content(f"Read this Telugu story: '{input_story_to_split}'. Break it down into exactly 4 to 5 separate visual scenes in Telugu. Write each scene on a strict new line. No numbers, headers, or bullet points.")
                     if response.text:
                         st.session_state.generated_scenes_holder = response.text.strip()
                         play_success_sound()
-                        st.rerun()
-                except Exception as e: st.error(f"లోపం: {e}")
+                except Exception as e: 
+                    st.error(f"లోపం: {e}")
+                    
     st.text_area("🎬 ఇక్కడ వచ్చిన సీన్లను కాపీ చేసుకోండి (లైన్ బై లైన్):", value=st.session_state.generated_scenes_holder, height=220, key="t3_out_area")
 
 # ==========================================
