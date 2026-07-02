@@ -13,12 +13,9 @@ st.set_page_config(page_title="Telugu AI Studio Pro", page_icon="🎬", layout="
 # ==========================================
 st.markdown("""
     <style>
-    /* మెయిన్ బ్యాక్‌గ్రౌండ్ ఎల్లప్పుడూ ప్యూర్ వైట్ */
     .stApp {
         background-color: #ffffff !important;
     }
-    
-    /* క్లాసిక్ బ్లూ మెయిన్ హెడింగ్ */
     .main-heading {
         font-size: 28px;
         color: #ffffff !important;
@@ -29,8 +26,6 @@ st.markdown("""
         border-radius: 8px;
         margin-bottom: 25px;
     }
-    
-    /* టాస్క్ బ్లూ హెడర్స్ */
     .task-header {
         background-color: #eff6ff;
         color: #1e3a8a !important;
@@ -42,8 +37,6 @@ st.markdown("""
         margin-top: 25px;
         margin-bottom: 15px;
     }
-
-    /* బ్లూ బటన్స్ డిజైన్ */
     div.stButton > button {
         background-color: #1e3a8a !important;
         color: #ffffff !important;
@@ -59,8 +52,6 @@ st.markdown("""
     div.stButton > button:hover {
         background-color: #2563eb !important;
     }
-    
-    /* గ్రీన్ డౌน์โหลด బటన్ */
     div.stDownloadButton > button {
         background-color: #10b981 !important;
         color: #ffffff !important;
@@ -73,8 +64,6 @@ st.markdown("""
     div.stDownloadButton > button:hover {
         background-color: #059669 !important;
     }
-
-    /* టెక్స్ట్ కలర్స్ స్పష్టత */
     p, label, span, div, .stRadio, p li {
         color: #1f2937 !important;
         font-weight: bold !important;
@@ -105,7 +94,7 @@ if "scenes_text" not in st.session_state:
     st.session_state.scenes_text = ""
 
 # ==========================================
-# STEP 1: స్టోరీ మరియు సీన్స్ జనరేషన్ (HIGH ACCURACY ROUTE)
+# STEP 1: స్టోరీ మరియు సీన్స్ జనరేషన్
 # ==========================================
 st.markdown('<div class="task-header">Step 1: 📝 కథ మరియు సీన్స్ సిద్ధం చేయండి</div>', unsafe_allow_html=True)
 topic = st.text_input("మీ కథ టాపిక్ ఇక్కడ టైప్ చేయండి:", placeholder="ఉదాహరణకు: కాకి మరియు కుండ కథ...")
@@ -116,11 +105,8 @@ if st.button("1. కథ జనరేట్ చేయి 📖", key="gen_only_sto
     else:
         with st.spinner("AI కథను వేగంగా తయారు చేస్తోంది..."):
             try:
-                # సర్వర్ బిజీ సమస్యను నివారించడానికి టెక్స్ట్ మోడల్ రూట్‌ని మార్చాము
                 prompt = f"Write a beautiful short story in clear Telugu language about the topic: '{topic}'."
                 encoded_prompt = requests.utils.quote(prompt)
-                
-                # వేగవంతమైన బ్యాకప్ సర్వర్ లైన్
                 url = f"https://text.pollinations.ai/{encoded_prompt}?model=searchgpt&json=false"
                 response = requests.get(url)
                 
@@ -129,19 +115,11 @@ if st.button("1. కథ జనరేట్ చేయి 📖", key="gen_only_sto
                     st.success("కథ సిద్ధమైంది! ఇప్పుడు కింద ఓపెన్ అయిన సీన్స్ బటన్ నొక్కండి.")
                     play_success_sound()
                 else:
-                    # ఒకవేళ ఫెయిల్ అయితే సెకండ్ బ్యాకప్ లైన్
-                    fallback_url = f"https://text.pollinations.ai/{encoded_prompt}?json=false"
-                    fb_res = requests.get(fallback_url)
-                    if fb_res.status_code == 200:
-                        st.session_state.story_text = fb_res.text.strip()
-                        st.success("కథ సిద్ధమైంది!")
-                        play_success_sound()
-                    else:
-                        st.error("సర్వర్ రెస్పాండ్ అవ్వడం లేదు. దయచేసి మరోసారి చిన్న టాపిక్ తో ట్రై చేయండి.")
+                    st.error("సర్వర్ రెస్పాండ్ అవ్వడం లేదు. దయచేసి మరోసారి ట్రై చేయండి.")
             except Exception as e: 
                 st.error(f"కనెక్షన్ లోపం: {e}")
 
-# కథ ఉన్నప్పుడు మాత్రమే సీన్స్ బటన్ లాక్ ఓపెన్ అవుతుంది
+# కథ ఉన్నప్పుడు మాత్రమే సీన్స్ బటన్ ఓపెన్ అవుతుంది
 if st.session_state.story_text.strip() != "":
     if st.button("2. కథ నుండి సీన్లను విడగొట్టు 🎬", key="gen_only_scenes"):
         with st.spinner("కథ నుండి విజువల్ సీన్లను వేరు చేస్తోంది..."):
@@ -161,7 +139,8 @@ if st.session_state.story_text.strip() != "":
                     play_success_sound()
                 else:
                     st.error("సీన్స్ సర్వర్ బిజీగా ఉంది, మళ్లీ ట్రై చేయండి.")
-            except Exception as e: st.error(f"లోపం: {e}")
+            except Exception as e: 
+                st.error(f"लोपं: {e}")
 
 colA, colB = st.columns(2)
 with colA:
@@ -232,11 +211,12 @@ if st.button("కథను ఆడియోగా మార్చు 🚀", key="
                 st.audio(final_audio_bytes, format="audio/mp3")
                 st.download_button(label="📥 కథ ఆడియో ఫైల్ డౌน์โหลด చేయండి", data=final_audio_bytes, file_name="story_voice.mp3", mime="audio/mp3")
                 play_success_sound()
-            except Exception as e: st.error(f"లోపం: {e}")
+            except Exception as e: 
+                st.error(f"లోపం: {e}")
 
 
 # ==========================================
-# STEP 3: ఇమేజ్ జనరేషన్ (స్మార్ట్ టెక్స్ట్ ఆధారిత స్టైల్స్)
+# STEP 3: ఇమేజ్ జనరేషన్ (Fixed Syntax & Structure)
 # ==========================================
 st.markdown('<div class="task-header">Step 3: 🎨 సీన్స్ నుండి ఇమేజెస్ జనరేట్ చేయండి</div>', unsafe_allow_html=True)
 
@@ -285,4 +265,24 @@ if st.button("సీన్ ఇమేజెస్ జనరేట్ చేయి
                     
                     if translate_response.status_code == 200:
                         english_prompt = translate_response.text.strip()
-                        encoded_scene
+                        encoded_scene = requests.utils.quote(english_prompt)
+                        image_url = f"https://image.pollinations.ai/p/{encoded_scene}?width={img_width}&height={img_height}&nologo=true&model=flux"
+                        
+                        img_response = requests.get(image_url)
+                        if img_response.status_code == 200:
+                            image_bytes = img_response.content
+                            st.image(image_bytes, caption=f"Scene {i+1} Output", use_container_width=True)
+                            
+                            img_buffer = io.BytesIO(image_bytes)
+                            st.download_button(
+                                label=f"📥 సీన్ {i+1} ఇమేజ్ ڈاؤنน์โหลด చేయండి", data=img_buffer,
+                                file_name=f"scene_{i+1}.jpg", mime="image/jpeg", key=f"dl_img_{i}"
+                            )
+                            st.markdown("---")
+                        else:
+                            st.error(f"సీన్ {i+1} ఇమేజ్ లోడ్ అవ్వలేదు.")
+                    else:
+                        st.error("ライン ట్రాన్స్‌లేషన్‌లో లోపం వచ్చింది.")
+                except Exception as e:
+                    st.error(f"తప్పు జరిగింది: {e}")
+        play_success_sound()
